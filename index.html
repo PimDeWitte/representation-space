@@ -13,12 +13,15 @@
         #info-box { top: 20px; left: 20px; border: 2px solid #0f0; color: #0f0; max-width: 300px; display: none; pointer-events: none; text-shadow: 0 0 5px #0f0; line-height: 1.6; }
         #info-box h3 { margin-top: 0; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; }
         #instructions { bottom: 15px; left: 50%; transform: translateX(-50%); color: #aaa; font-size: 10px; padding: 5px 10px; text-align: center; }
-        #instructions a { color: #0ff; text-decoration: none; display: block; margin-top: 5px; cursor: pointer; } /* Added cursor pointer */
+        #instructions a { color: #0ff; text-decoration: none; display: block; margin-top: 5px; cursor: pointer; }
         #instructions a:hover { text-decoration: underline; }
         #query-display { top: 20px; right: 20px; border: 2px solid #0ff; color: #0ff; text-shadow: 0 0 5px #0ff; }
 
-        /* --- Overlay Styles (Animation) --- */
-        #animation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.9); display: none; justify-content: center; align-items: center; z-index: 100; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        /* --- Overlay Styles (Animation & Disclaimer) --- */
+        #animation-overlay, #disclaimer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; justify-content: center; align-items: center; z-index: 100; padding: 20px; box-sizing: border-box; }
+        #animation-overlay { background-color: rgba(0, 0, 0, 0.9); flex-direction: column; }
+        #disclaimer-overlay { background-color: rgba(10, 10, 20, 0.95); overflow-y: auto; }
+
         #overlay-node-label { color: #aaa; font-size: 14px; margin-bottom: 15px; text-align: center; }
         #overlay-content { display: flex; align-items: center; justify-content: space-around; width: 80%; max-width: 800px; height: 100px; margin-bottom: 20px; position: relative; border-bottom: 1px dashed rgba(0, 255, 255, 0.3); padding-bottom: 15px; }
         .network-layer { width: 10px; height: 100%; background: linear-gradient(to bottom, rgba(0, 100, 100, 0.3), rgba(0, 200, 200, 0.6), rgba(0, 100, 100, 0.3)); border-radius: 5px; box-shadow: 0 0 8px rgba(0, 255, 255, 0.5); opacity: 0; animation: fadeInLayer 0.5s forwards; transition: box-shadow 0.15s linear, background 0.15s linear; position: relative; overflow: hidden; }
@@ -42,55 +45,13 @@
         .close-overlay-btn { position: absolute; top: 20px; right: 20px; background-color: #ff0000; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-family: 'Press Start 2P', cursive; font-size: 14px; box-shadow: 0 0 10px #ff0000; transition: background-color 0.2s; }
         .close-overlay-btn:hover { background-color: #cc0000; }
 
-        /* --- Disclaimer Overlay Styles --- */
-        #disclaimer-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(10, 10, 20, 0.95); /* Slightly different background */
-            display: none; /* Hidden by default */
-            justify-content: center; align-items: center;
-            z-index: 100; padding: 30px; box-sizing: border-box;
-            overflow-y: auto; /* Allow scrolling if content overflows */
-        }
-        #disclaimer-content {
-            background-color: rgba(0, 0, 0, 0.5);
-            border: 1px solid #0ff;
-            border-radius: 8px;
-            padding: 20px 30px;
-            max-width: 800px;
-            width: 90%;
-            color: #ccc; /* Lighter text color */
-            font-size: 13px; /* Slightly larger base font */
-            line-height: 1.7;
-            font-family: sans-serif; /* Use a more readable font */
-        }
-         #disclaimer-content h2 {
-             font-family: 'Press Start 2P', cursive; /* Keep title font */
-             color: #0ff;
-             font-size: 18px;
-             margin-bottom: 20px;
-             text-align: center;
-             text-shadow: 0 0 5px #0ff;
-         }
-         #disclaimer-content h3 { /* Style subheadings */
-             font-family: 'Press Start 2P', cursive;
-             color: #eee;
-             font-size: 14px;
-             margin-top: 25px;
-             margin-bottom: 10px;
-             border-bottom: 1px dashed #555;
-             padding-bottom: 5px;
-         }
-         #disclaimer-content p, #disclaimer-content li {
-             margin-bottom: 10px;
-         }
-         #disclaimer-content strong {
-             color: #fff;
-             font-weight: normal; /* Reset bold, rely on color */
-         }
-         #disclaimer-content ul {
-             list-style: disc;
-             margin-left: 20px;
-         }
+        /* Disclaimer Overlay Styles */
+        #disclaimer-content { background-color: rgba(0, 0, 0, 0.5); border: 1px solid #0ff; border-radius: 8px; padding: 20px 30px; max-width: 800px; width: 90%; color: #ccc; font-size: 13px; line-height: 1.7; font-family: sans-serif; }
+        #disclaimer-content h2 { font-family: 'Press Start 2P', cursive; color: #0ff; font-size: 18px; margin-bottom: 20px; text-align: center; text-shadow: 0 0 5px #0ff; }
+        #disclaimer-content h3 { font-family: 'Press Start 2P', cursive; color: #eee; font-size: 14px; margin-top: 25px; margin-bottom: 10px; border-bottom: 1px dashed #555; padding-bottom: 5px; }
+        #disclaimer-content p, #disclaimer-content li { margin-bottom: 10px; }
+        #disclaimer-content strong { color: #fff; font-weight: normal; }
+        #disclaimer-content ul { list-style: disc; margin-left: 20px; }
 
         @keyframes fadeInLayer { from { opacity: 0; transform: scaleY(0.5); } to { opacity: 1; transform: scaleY(1); } }
         @keyframes nodeClickFlash { 0%, 100% { transform: scale(1.0); } 50% { transform: scale(1.5); } }
@@ -127,29 +88,14 @@
          <div id="disclaimer-content">
              <h2>Understanding This Visualization: Accuracy and Simplification</h2>
              <p>Welcome! This interactive visualization aims to provide intuition about complex concepts like representation spaces, neural network layers, and Large Language Model (LLM) text generation. While it uses visual metaphors grounded in real principles, it's important to understand that it is a <strong>simplified analogy</strong>, not a scientifically rigorous simulation.</p>
-
              <h3>What This Demo Conceptually Represents:</h3>
-             <ul>
-                 <li><strong>Representation Spaces:</strong> The core idea of mapping concepts (like words or topics) to points in a multi-dimensional space, where similar concepts tend to be closer together, is accurately portrayed. This is fundamental to how many AI models understand relationships in data.</li>
-                 <li><strong>Layered Processing:</strong> Neural networks, including LLMs, process information through sequential layers or stages of computation. The overlay animation showing distinct layers captures this basic architectural principle.</li>
-                 <li><strong>Autoregressive Generation:</strong> The overlay's word-by-word text generation correctly reflects the sequential, token-by-token nature of how most LLMs produce output.</li>
-                 <li><strong>Probabilistic Selection:</strong> The brief visualization showing alternative words alongside the selected word hints at the probabilistic nature of LLM output, where the model chooses the next word from many possibilities based on learned probabilities.</li>
-             </ul>
-
+             <ul><li><strong>Representation Spaces:</strong> The core idea of mapping concepts (like words or topics) to points in a multi-dimensional space, where similar concepts tend to be closer together, is accurately portrayed. This is fundamental to how many AI models understand relationships in data.</li><li><strong>Layered Processing:</strong> Neural networks, including LLMs, process information through sequential layers or stages of computation. The overlay animation showing distinct layers captures this basic architectural principle.</li><li><strong>Autoregressive Generation:</strong> The overlay's word-by-word text generation correctly reflects the sequential, token-by-token nature of how most LLMs produce output.</li><li><strong>Probabilistic Selection:</strong> The brief visualization showing alternative words alongside the selected word hints at the probabilistic nature of LLM output, where the model chooses the next word from many possibilities based on learned probabilities.</li></ul>
              <h3>Important Simplifications and Metaphors:</h3>
-             <ul>
-                 <li><strong>Concept Positions & Connections:</strong> The specific locations of concepts and the structure of the clusters in the 3D view are illustrative examples, not derived from real model training data. The lines connecting cluster centers represent conceptual links abstractly; their varying opacity is a random visual effect symbolizing connection strength or 'weights', not depicting actual learned parameters.</li>
-                 <li><strong>Querying:</strong> The query simulation uses basic keyword matching. Real systems use complex vector mathematics (like cosine similarity) to find the closest concepts in the high-dimensional space.</li>
-                 <li><strong>Neural Network Layers:</strong> The visual representation of layers is highly abstract. It doesn't show the intricate mathematical operations (matrix multiplications, activation functions) or complex architectures (like the attention mechanisms crucial to modern LLMs like Transformers) occurring within them. The subtle pattern change in active layers is merely a visual cue for processing.</li>
-                 <li><strong>Signal Flow:</strong> The "signal wave" moving linearly is a simplification. Real processing involves massive parallelism within layers and more complex information flow.</li>
-                 <li><strong>Word Probabilities & Output:</strong> The visualization shows only a few generic alternatives during word selection. Real LLMs calculate probabilities over tens of thousands of possible words/tokens at each step and use sophisticated sampling strategies to choose the next one. The generated sentences themselves are predefined examples for this demo, not dynamically created based on learned language patterns.</li>
-             </ul>
-
+             <ul><li><strong>Concept Positions & Connections:</strong> The specific locations of concepts and the structure of the clusters in the 3D view are illustrative examples, not derived from real model training data. The lines connecting cluster centers represent conceptual links abstractly; their varying opacity is a random visual effect symbolizing connection strength or 'weights', not depicting actual learned parameters.</li><li><strong>Querying:</strong> The query simulation uses basic keyword matching. Real systems use complex vector mathematics (like cosine similarity) to find the closest concepts in the high-dimensional space.</li><li><strong>Neural Network Layers:</strong> The visual representation of layers is highly abstract. It doesn't show the intricate mathematical operations (matrix multiplications, activation functions) or complex architectures (like the attention mechanisms crucial to modern LLMs like Transformers) occurring within them. The subtle pattern change in active layers is merely a visual cue for processing.</li><li><strong>Signal Flow:</strong> The "signal wave" moving linearly is a simplification. Real processing involves massive parallelism within layers and more complex information flow.</li><li><strong>Word Probabilities & Output:</strong> The visualization shows only a few generic alternatives during word selection. Real LLMs calculate probabilities over tens of thousands of possible words/tokens at each step and use sophisticated sampling strategies to choose the next one. The generated sentences themselves are predefined examples for this demo, not dynamically created based on learned language patterns.</li></ul>
              <h3>Conclusion:</h3>
              <p>Please enjoy this visualization as an interactive tool to build intuition about how AI models can represent and process information. It uses analogies to make these ideas more accessible. For a deeper, technically accurate understanding of these concepts, we encourage further reading and study of machine learning and neural network principles.</p>
          </div>
          <button id="close-disclaimer-overlay-btn" class="close-overlay-btn">X</button> </div>
-
 
     <script type="importmap">
         { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/" } }
@@ -173,34 +119,55 @@
         const genericAlternatives = ["the", "a", "is"];
         const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-        // --- Node Data Generation ---
+        // --- Node Data Generation (Expanded Lists) ---
         const generatedNodes = [];
-        const categories = { /* ... (same categories definition) ... */
-            "Element": { labels: ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen", "Fluorine", "Neon", "Sodium", "Magnesium", "Aluminium", "Silicon", "Phosphorus", "Sulfur", "Chlorine", "Argon", "Potassium", "Calcium"], base: [15, 15, 5] },
-            "City": { labels: ["Tokyo", "Delhi", "Shanghai", "Sao Paulo", "Mumbai", "Mexico City", "Beijing", "Osaka", "Cairo", "New York", "Dhaka", "Karachi", "Buenos Aires", "Kolkata", "Istanbul", "Lagos", "Manila", "Rio de Janeiro", "Guangzhou", "Los Angeles"], base: [-15, 15, 5] },
-            "Country": { labels: ["China", "India", "USA", "Indonesia", "Pakistan", "Brazil", "Nigeria", "Bangladesh", "Russia", "Mexico", "Japan", "Ethiopia", "Philippines", "Egypt", "Vietnam", "DR Congo", "Turkey", "Iran", "Germany", "Thailand"], base: [15, -15, 5] },
-            "Shape": { labels: ["Circle", "Square", "Triangle", "Rectangle", "Pentagon", "Hexagon", "Octagon", "Sphere", "Cube", "Pyramid", "Cylinder", "Cone", "Torus", "Ellipse", "Rhombus", "Trapezoid", "Star", "Heart", "Cross", "Arrow"], base: [-15, -15, 5] },
-            "Instrument": { labels: ["Piano", "Guitar", "Violin", "Drums", "Trumpet", "Flute", "Saxophone", "Cello", "Clarinet", "Harp", "Trombone", "Accordion", "Ukulele", "Banjo", "Mandolin", "Xylophone", "Harmonica", "Bagpipes", "Didgeridoo", "Sitar"], base: [5, 15, 15] },
-            "Emotion": { labels: ["Joy", "Sadness", "Anger", "Fear", "Surprise", "Disgust", "Trust", "Anticipation", "Love", "Guilt", "Shame", "Envy", "Jealousy", "Hope", "Gratitude", "Pride", "Contempt", "Interest", "Awe", "Confusion"], base: [5, -15, 15] },
-            "Science Concept": { labels: ["Gravity", "Evolution", "Relativity", "Quantum", "DNA", "Photosynthesis", "Entropy", "Thermodynamics", "Big Bang", "Black Hole", "Plate Tectonics", "Magnetism", "Electricity", "Atom", "Molecule", "Cell", "Virus", "Bacteria", "Ecosystem", "Climate"], base: [15, 5, 15] },
-            "Math Concept": { labels: ["Algebra", "Calculus", "Geometry", "Trigonometry", "Statistics", "Probability", "Logic", "Set Theory", "Number Theory", "Topology", "Fractal", "Vector", "Matrix", "Integral", "Derivative", "Theorem", "Axiom", "Function", "Variable", "Constant"], base: [-15, 5, 15] },
-            "Verb": { labels: ["Run", "Walk", "Think", "Create", "Analyze", "Synthesize", "Communicate", "Observe", "Learn", "Teach", "Build", "Destroy", "Explore", "Discover", "Imagine", "Calculate", "Measure", "Predict", "Test", "Validate"], base: [5, 15, -15] },
-            "Adjective": { labels: ["Fast", "Slow", "Bright", "Dark", "Complex", "Simple", "Abstract", "Concrete", "Large", "Small", "Hot", "Cold", "Heavy", "Light", "Hard", "Soft", "Rough", "Smooth", "Sharp", "Dull"], base: [5, -15, -15] }
+        const categories = {
+            "Element": { labels: ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen", "Fluorine", "Neon", "Sodium", "Magnesium", "Aluminium", "Silicon", "Phosphorus", "Sulfur", "Chlorine", "Argon", "Potassium", "Calcium", "Iron", "Nickel", "Copper", "Zinc", "Gold", "Silver", "Platinum", "Lead", "Uranium", "Titanium"], base: [15, 15, 5] },
+            "City": { labels: ["Tokyo", "Delhi", "Shanghai", "Sao Paulo", "Mumbai", "Mexico City", "Beijing", "Osaka", "Cairo", "New York", "Dhaka", "Karachi", "Buenos Aires", "Kolkata", "Istanbul", "Lagos", "Manila", "Rio de Janeiro", "Guangzhou", "Los Angeles", "London", "Paris", "Moscow", "Bangkok", "Lima", "Seoul", "Jakarta", "Tehran", "Chicago", "Bogota"], base: [-15, 15, 5] },
+            "Country": { labels: ["China", "India", "USA", "Indonesia", "Pakistan", "Brazil", "Nigeria", "Bangladesh", "Russia", "Mexico", "Japan", "Ethiopia", "Philippines", "Egypt", "Vietnam", "DR Congo", "Turkey", "Iran", "Germany", "Thailand", "UK", "France", "Italy", "South Africa", "Tanzania", "Myanmar", "Kenya", "South Korea", "Colombia", "Spain"], base: [15, -15, 5] },
+            "Shape": { labels: ["Circle", "Square", "Triangle", "Rectangle", "Pentagon", "Hexagon", "Octagon", "Sphere", "Cube", "Pyramid", "Cylinder", "Cone", "Torus", "Ellipse", "Rhombus", "Trapezoid", "Star", "Heart", "Cross", "Arrow", "Oval", "Parallelogram", "Kite", "Heptagon", "Nonagon", "Decagon", "Dodecahedron", "Icosahedron"], base: [-15, -15, 5] },
+            "Instrument": { labels: ["Piano", "Guitar", "Violin", "Drums", "Trumpet", "Flute", "Saxophone", "Cello", "Clarinet", "Harp", "Trombone", "Accordion", "Ukulele", "Banjo", "Mandolin", "Xylophone", "Harmonica", "Bagpipes", "Didgeridoo", "Sitar", "Viola", "Oboe", "Bassoon", "French Horn", "Tuba", "Gong", "Maracas", "Triangle", "Synthesizer"], base: [5, 15, 15] },
+            "Emotion": { labels: ["Joy", "Sadness", "Anger", "Fear", "Surprise", "Disgust", "Trust", "Anticipation", "Love", "Guilt", "Shame", "Envy", "Jealousy", "Hope", "Gratitude", "Pride", "Contempt", "Interest", "Awe", "Confusion", "Relief", "Contentment", "Boredom", "Frustration", "Anxiety", "Excitement", "Nostalgia", "Empathy", "Sympathy"], base: [5, -15, 15] },
+            "Science Concept": { labels: ["Gravity", "Evolution", "Relativity", "Quantum", "DNA", "Photosynthesis", "Entropy", "Thermodynamics", "Big Bang", "Black Hole", "Plate Tectonics", "Magnetism", "Electricity", "Atom", "Molecule", "Cell", "Virus", "Bacteria", "Ecosystem", "Climate", "Friction", "Inertia", "Momentum", "Energy", "Wave", "Particle", "Fusion", "Fission", "Orbit", "Gene"], base: [15, 5, 15] },
+            "Math Concept": { labels: ["Algebra", "Calculus", "Geometry", "Trigonometry", "Statistics", "Probability", "Logic", "Set Theory", "Number Theory", "Topology", "Fractal", "Vector", "Matrix", "Integral", "Derivative", "Theorem", "Axiom", "Function", "Variable", "Constant", "Equation", "Algorithm", "Proof", "Limit", "Series", "Ratio", "Permutation", "Combination", "Graph Theory"], base: [-15, 5, 15] },
+            "Verb": { labels: ["Run", "Walk", "Think", "Create", "Analyze", "Synthesize", "Communicate", "Observe", "Learn", "Teach", "Build", "Destroy", "Explore", "Discover", "Imagine", "Calculate", "Measure", "Predict", "Test", "Validate", "Write", "Read", "Listen", "Speak", "Collaborate", "Design", "Implement", "Refine", "Iterate", "Question"], base: [5, 15, -15] },
+            "Adjective": { labels: ["Fast", "Slow", "Bright", "Dark", "Complex", "Simple", "Abstract", "Concrete", "Large", "Small", "Hot", "Cold", "Heavy", "Light", "Hard", "Soft", "Rough", "Smooth", "Sharp", "Dull", "Accurate", "Approximate", "Efficient", "Inefficient", "Consistent", "Inconsistent", "Stable", "Unstable", "Transparent", "Opaque"], base: [5, -15, -15] }
         };
         const clusterCenters = {};
-        for (const categoryName in categories) { /* ... (same generation logic, includes clusterCenter) ... */
+        for (const categoryName in categories) {
              const category = categories[categoryName]; const [bx, by, bz] = category.base; const centerPoint = new THREE.Vector3(bx, by, bz); clusterCenters[categoryName] = centerPoint;
-             category.labels.forEach(label => { generatedNodes.push({ position: randomPosition(bx, by, bz, newNodeSpread), label: label, category: categoryName, clusterCenter: centerPoint, info: `...`, color: Math.random() * 0xffffff, sentence: `Concept '${label}' represents the ${categoryName.toLowerCase()} ${label}.` }); });
+             category.labels.forEach(label => {
+                 generatedNodes.push({
+                     position: randomPosition(bx, by, bz, newNodeSpread), label: label, category: categoryName, clusterCenter: centerPoint,
+                     info: `A concept within the '${categoryName}' category.`, color: Math.random() * 0xffffff,
+                     sentence: `Concept '${label}' represents the ${categoryName.toLowerCase()} ${label}.` });
+             });
         }
-        generatedNodes.forEach(n => { if (!n.info) n.info = `Info about ${n.label}.`; });
 
-        // --- Original Sample Data ---
-        const originalNodesData = [ /* ... (same original data with category and clusterCenter added) ... */
-             { position: new THREE.Vector3(5, 0, 0), label: "Apple", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0xff0000, sentence: "..." }, { position: new THREE.Vector3(5.5, 0.5, 0.2), label: "Banana", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0xffff00, sentence: "..." }, { position: new THREE.Vector3(4.8, -0.3, -0.5), label: "Orange", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0xffa500, sentence: "..." }, { position: new THREE.Vector3(5.2, 0.8, -0.8), label: "Grape", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0x800080, sentence: "..." }, { position: new THREE.Vector3(-5, 0, 0), label: "Red", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0xff0000, sentence: "..." }, { position: new THREE.Vector3(-5.2, 0.6, -0.3), label: "Green", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0x00ff00, sentence: "..." }, { position: new THREE.Vector3(-4.5, -0.5, 0.4), label: "Blue", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0x0000ff, sentence: "..." }, { position: new THREE.Vector3(-5.5, -0.2, -0.6), label: "Yellow", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0xffff00, sentence: "..." }, { position: new THREE.Vector3(0, 0, 5), label: "Abstract", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "...", color: 0xaaaaaa, sentence: "..." }, { position: new THREE.Vector3(0.5, 0.5, 5.5), label: "Concrete", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "...", color: 0x555555, sentence: "..." }, { position: new THREE.Vector3(-0.3, -0.4, 4.8), label: "Idea", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "...", color: 0xcccccc, sentence: "..." }, { position: new THREE.Vector3(0, 5, 0), label: "Dog", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0x8B4513, sentence: "..." }, { position: new THREE.Vector3(0.5, 5.5, 0.3), label: "Cat", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0x808080, sentence: "..." }, { position: new THREE.Vector3(-0.4, 4.8, -0.2), label: "Bird", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0xADD8E6, sentence: "..." }, { position: new THREE.Vector3(0.2, 5.2, -0.5), label: "Fish", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0x00008B, sentence: "..." }, { position: new THREE.Vector3(0, -5, 0), label: "Car", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0x708090, sentence: "..." }, { position: new THREE.Vector3(0.6, -5.4, 0.1), label: "Bicycle", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0xB0C4DE, sentence: "..." }, { position: new THREE.Vector3(-0.5, -4.7, -0.3), label: "Airplane", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0xD3D3D3, sentence: "..." }, { position: new THREE.Vector3(0.3, -5.8, -0.6), label: "Boat", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0x4682B4, sentence: "..." },
+        // --- Original Sample Data (Fixed Placeholders) ---
+        const originalNodesData = [
+             { position: new THREE.Vector3(5, 0, 0), label: "Apple", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "A common, round fruit with firm, white flesh.", color: 0xff0000, sentence: "The system identifies 'Apple' as a type of pome fruit." },
+             { position: new THREE.Vector3(5.5, 0.5, 0.2), label: "Banana", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "A long, curved fruit with yellow skin when ripe.", color: 0xffff00, sentence: "Processing concept... 'Banana' is recognized as a tropical berry." },
+             { position: new THREE.Vector3(4.8, -0.3, -0.5), label: "Orange", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "A round citrus fruit with tough, bright reddish-yellow rind.", color: 0xffa500, sentence: "Concept activated: 'Orange', a citrus fruit high in vitamin C." },
+             { position: new THREE.Vector3(5.2, 0.8, -0.8), label: "Grape", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "A small, round or oval berry growing in clusters.", color: 0x800080, sentence: "Representation decoded: 'Grape', often used for wine." },
+             { position: new THREE.Vector3(-5, 0, 0), label: "Red", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "The color at the end of the visible spectrum of light.", color: 0xff0000, sentence: "Color vector 'Red' is activated in the spectrum space." },
+             { position: new THREE.Vector3(-5.2, 0.6, -0.3), label: "Green", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "The color between blue and yellow on the visible spectrum.", color: 0x00ff00, sentence: "Concept 'Green' represents wavelengths associated with nature." },
+             { position: new THREE.Vector3(-4.5, -0.5, 0.4), label: "Blue", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "A primary color between green and violet.", color: 0x0000ff, sentence: "The concept 'Blue' relates to sky and water elements." },
+             { position: new THREE.Vector3(-5.5, -0.2, -0.6), label: "Yellow", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "The color between green and orange in the spectrum.", color: 0xffff00, sentence: "Feature detected: 'Yellow', a bright primary color." },
+             { position: new THREE.Vector3(0, 0, 5), label: "Abstract", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "Existing in thought or idea, not physically real.", color: 0xaaaaaa, sentence: "Conceptual input 'Abstract' signifies non-physical ideas." },
+             { position: new THREE.Vector3(0.5, 0.5, 5.5), label: "Concrete", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "Existing in a material or physical form.", color: 0x555555, sentence: "Input 'Concrete' pertains to tangible, physical objects." },
+             { position: new THREE.Vector3(-0.3, -0.4, 4.8), label: "Idea", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "A thought, suggestion, or possible course of action.", color: 0xcccccc, sentence: "The 'Idea' input represents thoughts and suggestions." },
+             { position: new THREE.Vector3(0, 5, 0), label: "Dog", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "A domesticated carnivorous mammal.", color: 0x8B4513, sentence: "Animal identified: 'Dog', a common domesticated mammal." },
+             { position: new THREE.Vector3(0.5, 5.5, 0.3), label: "Cat", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "A small domesticated carnivorous mammal with soft fur.", color: 0x808080, sentence: "Recognized entity: 'Cat', a feline companion animal." },
+             { position: new THREE.Vector3(-0.4, 4.8, -0.2), label: "Bird", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "A warm-blooded vertebrate with feathers and wings.", color: 0xADD8E6, sentence: "Concept 'Bird' relates to avian vertebrates with feathers." },
+             { position: new THREE.Vector3(0.2, 5.2, -0.5), label: "Fish", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "A limbless cold-blooded aquatic vertebrate.", color: 0x00008B, sentence: "Aquatic lifeform 'Fish' identified in the biological space." },
+             { position: new THREE.Vector3(0, -5, 0), label: "Car", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "A road vehicle, typically with four wheels.", color: 0x708090, sentence: "Vehicle type 'Car' represents common road transport." },
+             { position: new THREE.Vector3(0.6, -5.4, 0.1), label: "Bicycle", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "A human-powered land vehicle with two wheels.", color: 0xB0C4DE, sentence: "Concept 'Bicycle' signifies human-powered two-wheeled transport." },
+             { position: new THREE.Vector3(-0.5, -4.7, -0.3), label: "Airplane", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "A powered fixed-wing aircraft propelled by engines.", color: 0xD3D3D3, sentence: "Transport mode 'Airplane' enables powered flight." },
+             { position: new THREE.Vector3(0.3, -5.8, -0.6), label: "Boat", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "A vessel for travel on water, propelled by various means.", color: 0x4682B4, sentence: "Watercraft 'Boat' identified for travel on water." },
         ];
-        originalNodesData.forEach(n => { /* ... (same default info/sentence/center assignment) ... */
-            if (!n.info) n.info = `Info about ${n.label}.`; if (!n.sentence) n.sentence = `Sentence about ${n.label}.`; if (!n.clusterCenter) { if (n.category === "Fruit") n.clusterCenter = new THREE.Vector3(5, 0, 0); else if (n.category === "Color") n.clusterCenter = new THREE.Vector3(-5, 0, 0); else if (n.category === "Concept") n.clusterCenter = new THREE.Vector3(0, 0, 5); else if (n.category === "Animal") n.clusterCenter = new THREE.Vector3(0, 5, 0); else if (n.category === "Vehicle") n.clusterCenter = new THREE.Vector3(0, -5, 0); else n.clusterCenter = new THREE.Vector3(0,0,0); } if (!clusterCenters[n.category]) { clusterCenters[n.category] = n.clusterCenter; }
-         });
+        // Add original centers to the map if not already present
+        originalNodesData.forEach(n => { if (!clusterCenters[n.category]) { clusterCenters[n.category] = n.clusterCenter; } });
 
         const nodesData = [...originalNodesData, ...generatedNodes];
         const sampleQueries = ["Yellow Fruit", "Flying Vehicle", "Pet", "Primary Color", "Grows in Water", "Citrus", "Idea", "Engine Powered", "Element", "City", "Country", "Shape", "Instrument", "Emotion", "Science Concept", "Math Concept", "Verb", "Adjective"];
@@ -221,11 +188,11 @@
         const wordSelectionVis = document.getElementById('word-selection-vis');
         const overlayOutputContainer = document.getElementById('overlay-output-container');
         const overlayOutput = document.getElementById('overlay-output');
-        const closeAnimationOverlayBtn = document.getElementById('close-animation-overlay-btn'); // Specific ID
+        const closeAnimationOverlayBtn = document.getElementById('close-animation-overlay-btn');
         const networkLayerDivs = overlayContent.querySelectorAll('.network-layer');
-        const disclaimerOverlay = document.getElementById('disclaimer-overlay'); // Ref for disclaimer overlay
-        const showDisclaimerLink = document.getElementById('show-disclaimer-link'); // Ref for footer link
-        const closeDisclaimerOverlayBtn = document.getElementById('close-disclaimer-overlay-btn'); // Ref for disclaimer close btn
+        const disclaimerOverlay = document.getElementById('disclaimer-overlay');
+        const showDisclaimerLink = document.getElementById('show-disclaimer-link');
+        const closeDisclaimerOverlayBtn = document.getElementById('close-disclaimer-overlay-btn');
 
         // --- Initialization ---
         function init() {
@@ -272,9 +239,9 @@
             window.addEventListener('resize', onWindowResize, false);
             window.addEventListener('mousemove', onMouseMove, false);
             canvas.addEventListener('click', onCanvasClick, false);
-            closeAnimationOverlayBtn.addEventListener('click', hideAnimationOverlay, false); // Use specific ID
-            showDisclaimerLink.addEventListener('click', showDisclaimerOverlay, false); // Listener for disclaimer link
-            closeDisclaimerOverlayBtn.addEventListener('click', hideDisclaimerOverlay, false); // Listener for disclaimer close
+            closeAnimationOverlayBtn.addEventListener('click', hideAnimationOverlay, false);
+            showDisclaimerLink.addEventListener('click', showDisclaimerOverlay, false);
+            closeDisclaimerOverlayBtn.addEventListener('click', hideDisclaimerOverlay, false);
 
             startQueryCycle();
             startAnimationLoop();
@@ -288,7 +255,7 @@
         function onWindowResize() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
         function onMouseMove(event) { mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1; }
         function onCanvasClick(event) { /* ... (same click logic) ... */
-            if (animationOverlay.style.display === 'flex' || nodeBeingClicked || disclaimerOverlay.style.display === 'flex') return; // Prevent click if any overlay is open
+            if (animationOverlay.style.display === 'flex' || nodeBeingClicked || disclaimerOverlay.style.display === 'flex') return;
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera); const intersects = raycaster.intersectObjects(nodes);
             if (intersects.length > 0 && intersects[0].object.userData.isNode) {
@@ -302,12 +269,11 @@
 
         // --- Overlay Controls ---
         let animationControl = { timeoutId: null, wordIndex: 0, words: [], isCancelled: false };
-        function showAnimationOverlay(label, sentence) {
-            if (disclaimerOverlay.style.display === 'flex') return; // Don't open if disclaimer is open
+        function showAnimationOverlay(label, sentence) { /* ... (same setup logic) ... */
+            if (disclaimerOverlay.style.display === 'flex') return;
             stopAnimationLoop(); mainVisualizationDiv.style.display = 'none';
             overlayNodeLabel.textContent = `LLM Generation for Concept: ${label}`;
             animationOverlay.style.display = 'flex';
-            // Reset state
             clearTimeout(animationControl.timeoutId); animationControl.isCancelled = false;
             signalWaveContainer.style.transition = 'none'; signalWaveContainer.style.opacity = '0'; signalWaveContainer.style.left = '-30px';
             overlayOutput.innerHTML = ''; wordSelectionVis.innerHTML = ''; wordSelectionVis.classList.remove('visible');
@@ -316,76 +282,32 @@
             animationControl.words = sentence.split(' '); animationControl.wordIndex = 0;
             animateLLMStep();
         }
-        function hideAnimationOverlay() {
+        function hideAnimationOverlay() { /* ... (same) ... */
              animationControl.isCancelled = true; clearTimeout(animationControl.timeoutId);
              animationOverlay.style.display = 'none'; mainVisualizationDiv.style.display = 'block';
              nodeBeingClicked = null; startAnimationLoop();
         }
-        function showDisclaimerOverlay(event) {
-            event.preventDefault(); // Prevent default link behavior
-            if (animationOverlay.style.display === 'flex') return; // Don't open if animation overlay is open
-            stopAnimationLoop();
-            mainVisualizationDiv.style.display = 'none';
-            disclaimerOverlay.style.display = 'flex';
+        function showDisclaimerOverlay(event) { /* ... (same) ... */
+            event.preventDefault(); if (animationOverlay.style.display === 'flex') return;
+            stopAnimationLoop(); mainVisualizationDiv.style.display = 'none'; disclaimerOverlay.style.display = 'flex';
         }
-        function hideDisclaimerOverlay() {
-            disclaimerOverlay.style.display = 'none';
-            mainVisualizationDiv.style.display = 'block';
-            startAnimationLoop();
+        function hideDisclaimerOverlay() { /* ... (same) ... */
+            disclaimerOverlay.style.display = 'none'; mainVisualizationDiv.style.display = 'block'; startAnimationLoop();
         }
 
         // Updated LLM Animation Step (async/await)
-        async function animateLLMStep() {
+        async function animateLLMStep() { /* ... (same logic as before for word selection viz) ... */
             if (animationControl.isCancelled) return;
-
-            if (animationControl.wordIndex >= animationControl.words.length) {
-                wordSelectionVis.innerHTML = `<span class="prob-word selected">Complete!</span>`;
-                wordSelectionVis.classList.add('visible');
-                // Use timeoutId from control object
-                animationControl.timeoutId = setTimeout(() => { if (!animationControl.isCancelled) wordSelectionVis.classList.remove('visible'); }, 1500);
-                return;
-            }
-
-            const currentWord = animationControl.words[animationControl.wordIndex];
-            const stepDuration = layerPassDuration / (numNetworkLayers + 1);
-
-            // --- Pass through layers ---
-            signalWaveContainer.style.transition = 'none'; signalWaveContainer.style.left = '-30px';
-            void signalWaveContainer.offsetWidth; signalWaveContainer.style.opacity = '1';
-            signalWaveContainer.style.transition = `left ${stepDuration}ms linear, opacity 0.2s linear`;
-
-            for (let currentLayer = 1; currentLayer <= numNetworkLayers + 1; currentLayer++) {
-                if (animationControl.isCancelled) return;
-                const targetX = ( (currentLayer -1) * (overlayContent.offsetWidth / numNetworkLayers)) ;
-                signalWaveContainer.style.left = `${targetX}px`;
-                if (currentLayer > 1 && currentLayer <= numNetworkLayers + 1) networkLayerDivs[currentLayer - 2].classList.remove('active');
-                if (currentLayer > 0 && currentLayer <= numNetworkLayers) networkLayerDivs[currentLayer - 1].classList.add('active');
-                await delay(stepDuration);
-            }
-             if (!animationControl.isCancelled && numNetworkLayers > 0) networkLayerDivs[numNetworkLayers - 1].classList.remove('active');
-             signalWaveContainer.style.opacity = '0';
-
-            // --- Word Selection Visualization ---
-            if (animationControl.isCancelled) return;
-            wordSelectionVis.innerHTML = '';
-            genericAlternatives.forEach(altWord => { if (altWord !== currentWord) { const altSpan = document.createElement('span'); altSpan.textContent = altWord; altSpan.classList.add('prob-word', 'alternative'); wordSelectionVis.appendChild(altSpan); } });
-            const selectedSpan = document.createElement('span'); selectedSpan.textContent = currentWord; selectedSpan.classList.add('prob-word', 'selected'); const insertIndex = Math.floor(Math.random() * (wordSelectionVis.children.length + 1)); wordSelectionVis.insertBefore(selectedSpan, wordSelectionVis.children[insertIndex]);
-            wordSelectionVis.classList.add('visible');
+            if (animationControl.wordIndex >= animationControl.words.length) { wordSelectionVis.innerHTML = `<span class="prob-word selected">Complete!</span>`; wordSelectionVis.classList.add('visible'); animationControl.timeoutId = setTimeout(() => { if (!animationControl.isCancelled) wordSelectionVis.classList.remove('visible'); }, 1500); return; }
+            const currentWord = animationControl.words[animationControl.wordIndex]; const stepDuration = layerPassDuration / (numNetworkLayers + 1);
+            signalWaveContainer.style.transition = 'none'; signalWaveContainer.style.left = '-30px'; void signalWaveContainer.offsetWidth; signalWaveContainer.style.opacity = '1'; signalWaveContainer.style.transition = `left ${stepDuration}ms linear, opacity 0.2s linear`;
+            for (let currentLayer = 1; currentLayer <= numNetworkLayers + 1; currentLayer++) { if (animationControl.isCancelled) return; const targetX = ( (currentLayer -1) * (overlayContent.offsetWidth / numNetworkLayers)) ; signalWaveContainer.style.left = `${targetX}px`; if (currentLayer > 1 && currentLayer <= numNetworkLayers + 1) networkLayerDivs[currentLayer - 2].classList.remove('active'); if (currentLayer > 0 && currentLayer <= numNetworkLayers) networkLayerDivs[currentLayer - 1].classList.add('active'); await delay(stepDuration); }
+            if (!animationControl.isCancelled && numNetworkLayers > 0) networkLayerDivs[numNetworkLayers - 1].classList.remove('active'); signalWaveContainer.style.opacity = '0';
+            if (animationControl.isCancelled) return; wordSelectionVis.innerHTML = ''; genericAlternatives.forEach(altWord => { if (altWord !== currentWord) { const altSpan = document.createElement('span'); altSpan.textContent = altWord; altSpan.classList.add('prob-word', 'alternative'); wordSelectionVis.appendChild(altSpan); } }); const selectedSpan = document.createElement('span'); selectedSpan.textContent = currentWord; selectedSpan.classList.add('prob-word', 'selected'); const insertIndex = Math.floor(Math.random() * (wordSelectionVis.children.length + 1)); wordSelectionVis.insertBefore(selectedSpan, wordSelectionVis.children[insertIndex]); wordSelectionVis.classList.add('visible');
             await delay(wordSelectionDuration);
-
-            // --- Append Word ---
-            if (animationControl.isCancelled) return;
-            wordSelectionVis.classList.remove('visible');
-            const span = document.createElement('span'); span.textContent = currentWord + ' '; span.classList.add('current-word');
-            overlayOutput.appendChild(span);
-            animationControl.wordIndex++;
-
-            // --- Schedule Next Step ---
-            if (!animationControl.isCancelled) {
-                 animationControl.timeoutId = setTimeout(animateLLMStep, wordAppendDelay);
-            }
+            if (animationControl.isCancelled) return; wordSelectionVis.classList.remove('visible'); const span = document.createElement('span'); span.textContent = currentWord + ' '; span.classList.add('current-word'); overlayOutput.appendChild(span); animationControl.wordIndex++;
+            if (!animationControl.isCancelled) { animationControl.timeoutId = setTimeout(animateLLMStep, wordAppendDelay); }
         }
-
 
         // --- Core Logic (Query Cycle, Intersection Checks) ---
         function startQueryCycle() { /* ... (same) ... */ if (queryIntervalId) clearInterval(queryIntervalId); const runQuery = () => { const query = sampleQueries[currentQueryIndex]; currentQuerySpan.textContent = query; processQuery(query); currentQueryIndex = (currentQueryIndex + 1) % sampleQueries.length; }; runQuery(); queryIntervalId = setInterval(runQuery, queryInterval); }
@@ -406,7 +328,7 @@
                     if (lineData.centerA.equals(targetCenter) || lineData.centerB.equals(targetCenter)) {
                         lineData.line.material = glowLineMaterial.clone();
                         // Set random opacity simulating weight (Reduced Range: 0.25 to 0.5)
-                        lineData.line.material.opacity = (Math.random() * 0.5 + 0.5) * 0.5;
+                        lineData.line.material.opacity = (Math.random() * 0.5 + 0.5) * 0.5; // Range 0.25 to 0.5
                     }
                 });
             }
