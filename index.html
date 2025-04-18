@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Representation Space Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #111; font-family: 'Press Start 2P', cursive; color: #eee; }
+        canvas { display: block; }
+        #info-box, #instructions, #query-display { position: absolute; background-color: rgba(0, 0, 0, 0.7); border-radius: 8px; padding: 10px 15px; font-size: 12px; z-index: 10; }
+        #info-box { top: 20px; left: 20px; border: 2px solid #0f0; color: #0f0; max-width: 300px; display: none; pointer-events: none; text-shadow: 0 0 5px #0f0; line-height: 1.6; }
+        #info-box h3 { margin-top: 0; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; }
+        #instructions { bottom: 20px; left: 50%; transform: translateX(-50%); color: #aaa; font-size: 10px; padding: 5px 10px; }
+        #query-display { top: 20px; right: 20px; border: 2px solid #0ff; color: #0ff; text-shadow: 0 0 5px #0ff; }
+
+        /* --- Overlay Styles --- */
+        #animation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.9); display: none; justify-content: center; align-items: center; z-index: 100; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        #overlay-node-label { color: #aaa; font-size: 14px; margin-bottom: 15px; text-align: center; }
+
+        /* Layer and Signal Area */
+        #overlay-content { display: flex; align-items: center; justify-content: space-around; width: 80%; max-width: 800px; height: 100px; margin-bottom: 20px; position: relative; border-bottom: 1px dashed rgba(0, 255, 255, 0.3); padding-bottom: 15px; }
+        .network-layer {
+            width: 10px; /* Increased width slightly */
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0, 100, 100, 0.3), rgba(0, 200, 200, 0.6), rgba(0, 100, 100, 0.3)); /* Default tealish gradient */
+            border-radius: 5px; box-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
+            opacity: 0; animation: fadeInLayer 0.5s forwards;
+            transition: box-shadow 0.15s linear, background 0.15s linear; /* Smoother transition */
+            position: relative; /* For pseudo-element */
+            overflow: hidden; /* Hide overflowing pseudo-element */
+        }
+        .network-layer::before { /* Subtle internal pattern */
+             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+             background: repeating-linear-gradient( 45deg, rgba(255,255,255,0.0), rgba(255,255,255,0.0) 3px, rgba(255,255,255,0.05) 3px, rgba(255,255,255,0.05) 6px );
+             opacity: 0; transition: opacity 0.15s linear;
+        }
+        .network-layer:nth-child(1) { animation-delay: 0.1s; } .network-layer:nth-child(2) { animation-delay: 0.2s; } .network-layer:nth-child(3) { animation-delay: 0.3s; } .network-layer:nth-child(4) { animation-delay: 0.4s; } .network-layer:nth-child(5) { animation-delay: 0.5s; }
+
+        /* Active state hinting at weights/processing */
+        .network-layer.active {
+            box-shadow: 0 0 20px #0f0;
+            background: linear-gradient(to bottom, rgba(0, 255, 0, 0.3), rgba(100, 255, 100, 1), rgba(0, 255, 0, 0.3)); /* Brighter green gradient */
+        }
+        .network-layer.active::before {
+             opacity: 0.5; /* Show internal pattern when active */
+        }
+
+        #signal-wave { position: absolute; left: -30px; top: 50%; height: 25px; transform: translateY(-50%); opacity: 0; transition: left 0.4s linear, opacity 0.2s linear; }
+        .signal-dot-item { position: absolute; width: 6px; height: 6px; background-color: #0f0; border-radius: 50%; box-shadow: 0 0 6px #0f0; }
+
+        /* Word Selection Visualization Area */
+        #word-selection-vis {
+            position: absolute;
+            bottom: -10px; /* Adjusted position */
+            left: 50%;
+            transform: translateX(-50%);
+            width: auto; min-width: 150px; /* Ensure space */
+            padding: 5px;
+            background-color: rgba(0, 0, 0, 0.6); /* Darker background */
+            border: 1px solid #555;
+            border-radius: 4px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.15s ease-out;
+            pointer-events: none;
+            display: flex; /* Use flexbox for layout */
+            justify-content: center;
+            align-items: center;
+            gap: 8px; /* Space between words */
+        }
+        #word-selection-vis.visible { opacity: 1; }
+        .prob-word { font-size: 10px; padding: 2px 4px; border-radius: 3px; }
+        .prob-word.selected { color: #0f0; border: 1px solid #0f0; background-color: rgba(0, 255, 0, 0.2); font-weight: bold; }
+        .prob-word.alternative { color: #777; border: 1px solid #444; background-color: rgba(80, 80, 80, 0.2); opacity: 0.7; }
+
+
+        /* Output Area Styles */
+        #overlay-output-container { width: 80%; max-width: 800px; min-height: 80px; text-align: left; border: 1px dashed #0ff; padding: 15px; border-radius: 5px; background-color: rgba(0, 50, 50, 0.3); margin-top: 10px; /* Added margin */ }
+        #overlay-output { font-size: 16px; color: #0f0; text-shadow: 0 0 8px #0f0; line-height: 1.6; }
+        #overlay-output .current-word { background-color: rgba(0, 255, 0, 0.3); padding: 0 2px; border-radius: 2px; animation: fadeHighlight 0.8s forwards; }
+
+        #close-overlay-btn { position: absolute; top: 20px; right: 20px; background-color: #ff0000; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-family: 'Press Start 2P', cursive; font-size: 14px; box-shadow: 0 0 10px #ff0000; transition: background-color 0.2s; }
+        #close-overlay-btn:hover { background-color: #cc0000; }
+
+        @keyframes fadeInLayer { from { opacity: 0; transform: scaleY(0.5); } to { opacity: 1; transform: scaleY(1); } }
+        @keyframes nodeClickFlash { 0%, 100% { transform: scale(1.0); } 50% { transform: scale(1.5); } }
+        @keyframes fadeHighlight { from { background-color: rgba(0, 255, 0, 0.3); } to { background-color: transparent; } }
+    </style>
+</head>
+<body>
+    <div id="main-visualization">
+        <div id="info-box"><h3 id="info-label">...</h3><p id="info-description">...</p></div>
+        <div id="instructions">Click & Drag: Rotate | Scroll: Zoom | Hover: Inspect | Click Concept: Animate</div> <div id="query-display">Query: <span id="current-query">...</span></div>
+        <canvas id="representation-canvas"></canvas>
+    </div>
+
+    <div id="animation-overlay">
+         <div id="overlay-node-label">LLM Generation for Concept: ...</div>
+         <div id="overlay-content">
+            <div class="network-layer"></div> <div class="network-layer"></div> <div class="network-layer"></div> <div class="network-layer"></div> <div class="network-layer"></div>
+            <div id="signal-wave"></div>
+             <div id="word-selection-vis"></div>
+        </div>
+        <div id="overlay-output-container">
+            <p id="overlay-output"></p> </div>
+        <button id="close-overlay-btn">X</button>
+    </div>
+
+    <script type="importmap">
+        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/" } }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- Configuration ---
+        const nodeSize = 0.5; const highlightColor = 0x00ff00; const defaultColor = 0xffffff;
+        const clickHighlightColor = 0xffffff; const queryInterval = 3000; const numNetworkLayers = 5;
+        const clickEffectDuration = 500; const transitionDelay = 500; const newNodeSpread = 6;
+        const numSignalDots = 5;
+        const layerPassDuration = 1200; // Slightly faster layer pass
+        const wordSelectionDuration = 450; // Slightly longer to see probabilities
+        const wordAppendDelay = 100;
+
+        // --- Helper Functions ---
+        function randomPosition(baseX, baseY, baseZ, spread) { /* ... (same) ... */ return new THREE.Vector3( baseX + (Math.random() * spread - spread / 2), baseY + (Math.random() * spread - spread / 2), baseZ + (Math.random() * spread - spread / 2) ); }
+        const genericAlternatives = ["the", "a", "is"]; // Generic low-probability words for visualization
+
+        // --- Node Data Generation (Adding 'category' field) ---
+        const generatedNodes = [];
+        const categories = { /* ... (same categories) ... */
+            "Element": { labels: ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen", "Fluorine", "Neon", "Sodium", "Magnesium", "Aluminium", "Silicon", "Phosphorus", "Sulfur", "Chlorine", "Argon", "Potassium", "Calcium"], base: [15, 15, 5] },
+            "City": { labels: ["Tokyo", "Delhi", "Shanghai", "Sao Paulo", "Mumbai", "Mexico City", "Beijing", "Osaka", "Cairo", "New York", "Dhaka", "Karachi", "Buenos Aires", "Kolkata", "Istanbul", "Lagos", "Manila", "Rio de Janeiro", "Guangzhou", "Los Angeles"], base: [-15, 15, 5] },
+            "Country": { labels: ["China", "India", "USA", "Indonesia", "Pakistan", "Brazil", "Nigeria", "Bangladesh", "Russia", "Mexico", "Japan", "Ethiopia", "Philippines", "Egypt", "Vietnam", "DR Congo", "Turkey", "Iran", "Germany", "Thailand"], base: [15, -15, 5] },
+            "Shape": { labels: ["Circle", "Square", "Triangle", "Rectangle", "Pentagon", "Hexagon", "Octagon", "Sphere", "Cube", "Pyramid", "Cylinder", "Cone", "Torus", "Ellipse", "Rhombus", "Trapezoid", "Star", "Heart", "Cross", "Arrow"], base: [-15, -15, 5] },
+            "Instrument": { labels: ["Piano", "Guitar", "Violin", "Drums", "Trumpet", "Flute", "Saxophone", "Cello", "Clarinet", "Harp", "Trombone", "Accordion", "Ukulele", "Banjo", "Mandolin", "Xylophone", "Harmonica", "Bagpipes", "Didgeridoo", "Sitar"], base: [5, 15, 15] },
+            "Emotion": { labels: ["Joy", "Sadness", "Anger", "Fear", "Surprise", "Disgust", "Trust", "Anticipation", "Love", "Guilt", "Shame", "Envy", "Jealousy", "Hope", "Gratitude", "Pride", "Contempt", "Interest", "Awe", "Confusion"], base: [5, -15, 15] },
+            "Science Concept": { labels: ["Gravity", "Evolution", "Relativity", "Quantum", "DNA", "Photosynthesis", "Entropy", "Thermodynamics", "Big Bang", "Black Hole", "Plate Tectonics", "Magnetism", "Electricity", "Atom", "Molecule", "Cell", "Virus", "Bacteria", "Ecosystem", "Climate"], base: [15, 5, 15] },
+            "Math Concept": { labels: ["Algebra", "Calculus", "Geometry", "Trigonometry", "Statistics", "Probability", "Logic", "Set Theory", "Number Theory", "Topology", "Fractal", "Vector", "Matrix", "Integral", "Derivative", "Theorem", "Axiom", "Function", "Variable", "Constant"], base: [-15, 5, 15] },
+            "Verb": { labels: ["Run", "Walk", "Think", "Create", "Analyze", "Synthesize", "Communicate", "Observe", "Learn", "Teach", "Build", "Destroy", "Explore", "Discover", "Imagine", "Calculate", "Measure", "Predict", "Test", "Validate"], base: [5, 15, -15] },
+            "Adjective": { labels: ["Fast", "Slow", "Bright", "Dark", "Complex", "Simple", "Abstract", "Concrete", "Large", "Small", "Hot", "Cold", "Heavy", "Light", "Hard", "Soft", "Rough", "Smooth", "Sharp", "Dull"], base: [5, -15, -15] }
+        };
+        for (const categoryName in categories) { /* ... (same generation logic, includes category) ... */
+             const category = categories[categoryName]; const [bx, by, bz] = category.base;
+             category.labels.forEach(label => { generatedNodes.push({ position: randomPosition(bx, by, bz, newNodeSpread), label: label, category: categoryName, info: `...`, color: Math.random() * 0xffffff, sentence: `Node '${label}' represents the ${categoryName.toLowerCase()} ${label}.` }); });
+        }
+        generatedNodes.forEach(n => { if (!n.info) n.info = `Info about ${n.label}.`; });
+
+        // --- Original Sample Data (Adding 'category') ---
+        const originalNodesData = [ /* ... (same original data with category added) ... */
+             { position: new THREE.Vector3(5, 0, 0), label: "Apple", category: "Fruit", info: "...", color: 0xff0000, sentence: "The system identifies 'Apple' as a type of common fruit." },
+             { position: new THREE.Vector3(5.5, 0.5, 0.2), label: "Banana", category: "Fruit", info: "...", color: 0xffff00, sentence: "Processing concept... 'Banana' is recognized as a tropical fruit." }, // Updated sentence slightly
+             { position: new THREE.Vector3(4.8, -0.3, -0.5), label: "Orange", category: "Fruit", info: "...", color: 0xffa500, sentence: "Concept activated: 'Orange', a citrus fruit high in vitamins." }, // Updated sentence slightly
+             { position: new THREE.Vector3(5.2, 0.8, -0.8), label: "Grape", category: "Fruit", info: "...", color: 0x800080, sentence: "Representation decoded: 'Grape', often found in vineyards." },
+             { position: new THREE.Vector3(-5, 0, 0), label: "Red", category: "Color", info: "...", color: 0xff0000, sentence: "Color vector 'Red' is activated in the spectrum space." },
+             { position: new THREE.Vector3(-5.2, 0.6, -0.3), label: "Green", category: "Color", info: "...", color: 0x00ff00, sentence: "Concept 'Green' represents wavelengths associated with nature." }, // Updated sentence slightly
+             { position: new THREE.Vector3(-4.5, -0.5, 0.4), label: "Blue", category: "Color", info: "...", color: 0x0000ff, sentence: "The concept 'Blue' relates to sky and water elements." },
+             { position: new THREE.Vector3(-5.5, -0.2, -0.6), label: "Yellow", category: "Color", info: "...", color: 0xffff00, sentence: "Feature detected: 'Yellow', a bright primary color." },
+             { position: new THREE.Vector3(0, 0, 5), label: "Abstract", category: "Concept", info: "...", color: 0xaaaaaa, sentence: "Conceptual input 'Abstract' signifies non-physical ideas." }, // Updated sentence slightly
+             { position: new THREE.Vector3(0.5, 0.5, 5.5), label: "Concrete", category: "Concept", info: "...", color: 0x555555, sentence: "Input 'Concrete' pertains to tangible, physical objects." }, // Updated sentence slightly
+             { position: new THREE.Vector3(-0.3, -0.4, 4.8), label: "Idea", category: "Concept", info: "...", color: 0xcccccc, sentence: "The 'Idea' input represents thoughts and suggestions." }, // Updated sentence slightly
+             { position: new THREE.Vector3(0, 5, 0), label: "Dog", category: "Animal", info: "...", color: 0x8B4513, sentence: "Animal identified: 'Dog', a common domesticated mammal." },
+             { position: new THREE.Vector3(0.5, 5.5, 0.3), label: "Cat", category: "Animal", info: "...", color: 0x808080, sentence: "Recognized entity: 'Cat', a feline companion animal." },
+             { position: new THREE.Vector3(-0.4, 4.8, -0.2), label: "Bird", category: "Animal", info: "...", color: 0xADD8E6, sentence: "Concept 'Bird' relates to avian vertebrates with feathers." }, // Updated sentence slightly
+             { position: new THREE.Vector3(0.2, 5.2, -0.5), label: "Fish", category: "Animal", info: "...", color: 0x00008B, sentence: "Aquatic lifeform 'Fish' identified in the biological space." },
+             { position: new THREE.Vector3(0, -5, 0), label: "Car", category: "Vehicle", info: "...", color: 0x708090, sentence: "Vehicle type 'Car' represents common road transport." },
+             { position: new THREE.Vector3(0.6, -5.4, 0.1), label: "Bicycle", category: "Vehicle", info: "...", color: 0xB0C4DE, sentence: "Concept 'Bicycle' signifies human-powered two-wheeled transport." }, // Updated sentence slightly
+             { position: new THREE.Vector3(-0.5, -4.7, -0.3), label: "Airplane", category: "Vehicle", info: "...", color: 0xD3D3D3, sentence: "Transport mode 'Airplane' enables powered flight." },
+             { position: new THREE.Vector3(0.3, -5.8, -0.6), label: "Boat", category: "Vehicle", info: "...", color: 0x4682B4, sentence: "Watercraft 'Boat' identified for travel on water." },
+        ];
+        originalNodesData.forEach(n => { if (!n.info) n.info = `Info about ${n.label}.`; });
+
+        const nodesData = [...originalNodesData, ...generatedNodes];
+        const sampleQueries = ["Yellow Fruit", "Flying Vehicle", "Pet", "Primary Color", "Grows in Water", "Citrus", "Idea", "Engine Powered", "Element", "City", "Country", "Shape", "Instrument", "Emotion", "Science Concept", "Math Concept", "Verb", "Adjective"];
+        let currentQueryIndex = 0;
+
+        // --- Three.js Setup Variables & DOM Refs ---
+        let scene, camera, renderer, controls; let raycaster, mouse; let nodes = [];
+        let intersectedObject = null; let currentlyQueriedNode = null; let queryIntervalId = null;
+        let animationFrameId = null; let nodeBeingClicked = null; let clickEffectStartTime = 0;
+        const infoBox = document.getElementById('info-box'); /* ... other DOM refs ... */
+        const infoLabel = document.getElementById('info-label'); const infoDescription = document.getElementById('info-description');
+        const canvas = document.getElementById('representation-canvas'); const currentQuerySpan = document.getElementById('current-query'); const mainVisualizationDiv = document.getElementById('main-visualization');
+        const animationOverlay = document.getElementById('animation-overlay'); const overlayNodeLabel = document.getElementById('overlay-node-label'); const overlayContent = document.getElementById('overlay-content');
+        const signalWaveContainer = document.getElementById('signal-wave');
+        const wordSelectionVis = document.getElementById('word-selection-vis');
+        const overlayOutputContainer = document.getElementById('overlay-output-container');
+        const overlayOutput = document.getElementById('overlay-output');
+        const closeOverlayBtn = document.getElementById('close-overlay-btn');
+        const networkLayerDivs = overlayContent.querySelectorAll('.network-layer');
+
+        // --- Initialization ---
+        function init() { /* ... (same setup, including signal dot creation) ... */
+            scene = new THREE.Scene(); scene.background = new THREE.Color(0x111111); scene.fog = new THREE.Fog(0x111111, 20, 70);
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); camera.position.z = 25;
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true }); renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(window.devicePixelRatio);
+            const ambientLight = new THREE.AmbientLight(0xaaaaaa); scene.add(ambientLight); const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); directionalLight.position.set(5, 10, 7.5); scene.add(directionalLight);
+            controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.05; controls.screenSpacePanning = false; controls.minDistance = 2; controls.maxDistance = 60;
+            raycaster = new THREE.Raycaster(); mouse = new THREE.Vector2();
+
+            const geometry = new THREE.SphereGeometry(nodeSize, 16, 8);
+            nodesData.forEach(data => { /* ... (same node creation) ... */
+                 const material = new THREE.MeshLambertMaterial({ color: data.color || defaultColor }); const nodeMesh = new THREE.Mesh(geometry, material); nodeMesh.position.copy(data.position);
+                 nodeMesh.userData = { label: data.label, info: data.info, sentence: data.sentence, category: data.category, originalColor: new THREE.Color(data.color || defaultColor), isNode: true };
+                 scene.add(nodeMesh); nodes.push(nodeMesh);
+             });
+
+            signalWaveContainer.innerHTML = '';
+            for (let i = 0; i < numSignalDots; i++) { /* ... (same dot creation) ... */
+                const dot = document.createElement('div'); dot.classList.add('signal-dot-item');
+                dot.style.top = `${(i / (numSignalDots - 1)) * 100 - 50}%`; dot.style.transform = `translateY(-50%)`;
+                signalWaveContainer.appendChild(dot);
+            }
+
+            window.addEventListener('resize', onWindowResize, false); window.addEventListener('mousemove', onMouseMove, false);
+            canvas.addEventListener('click', onCanvasClick, false); closeOverlayBtn.addEventListener('click', hideAnimationOverlay, false);
+            startQueryCycle(); startAnimationLoop();
+         }
+
+        // --- Animation Loop Control ---
+        function startAnimationLoop() { if (!animationFrameId) { animate(); } }
+        function stopAnimationLoop() { if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; } }
+
+        // --- Event Handlers ---
+        function onWindowResize() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
+        function onMouseMove(event) { mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1; }
+
+        function onCanvasClick(event) {
+            if (animationOverlay.style.display === 'flex' || nodeBeingClicked) return;
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera); const intersects = raycaster.intersectObjects(nodes);
+            if (intersects.length > 0 && intersects[0].object.userData.isNode) {
+                const clickedNode = intersects[0].object;
+                if (clickedNode.userData.sentence) {
+                    nodeBeingClicked = clickedNode; clickEffectStartTime = Date.now();
+                    setTimeout(() => {
+                        if (nodeBeingClicked === clickedNode) {
+                            showAnimationOverlay(clickedNode.userData.label, clickedNode.userData.sentence); // Pass label and sentence
+                            nodeBeingClicked = null;
+                        }
+                    }, transitionDelay);
+                }
+            }
+         }
+
+        // --- Overlay Animation Logic ---
+        let animationControl = { timeoutId: null, wordIndex: 0, words: [] };
+
+        function showAnimationOverlay(label, sentence) { // Accept label and sentence
+            stopAnimationLoop(); mainVisualizationDiv.style.display = 'none';
+            overlayNodeLabel.textContent = `LLM Generation for Concept: ${label}`; // Updated text
+            animationOverlay.style.display = 'flex';
+
+            // Reset state
+            clearTimeout(animationControl.timeoutId);
+            signalWaveContainer.style.transition = 'none'; signalWaveContainer.style.opacity = '0'; signalWaveContainer.style.left = '-30px';
+            overlayOutput.innerHTML = '';
+            wordSelectionVis.innerHTML = ''; // Clear previous selection viz
+            wordSelectionVis.classList.remove('visible');
+            networkLayerDivs.forEach(layer => layer.classList.remove('active'));
+            void signalWaveContainer.offsetWidth;
+
+            animationControl.words = sentence.split(' ');
+            animationControl.wordIndex = 0;
+            animateLLMStep();
+        }
+
+        function hideAnimationOverlay() { /* ... (same as before) ... */
+             clearTimeout(animationControl.timeoutId); animationOverlay.style.display = 'none'; mainVisualizationDiv.style.display = 'block'; nodeBeingClicked = null; startAnimationLoop();
+        }
+
+        // Updated to show probability visualization
+        function animateLLMStep() {
+            if (animationControl.wordIndex >= animationControl.words.length) {
+                // Finished
+                wordSelectionVis.innerHTML = `<span class="prob-word selected">Complete!</span>`; // Show complete message
+                wordSelectionVis.classList.add('visible');
+                animationControl.timeoutId = setTimeout(() => wordSelectionVis.classList.remove('visible'), 1500);
+                return;
+            }
+
+            const currentWord = animationControl.words[animationControl.wordIndex];
+            const stepDuration = layerPassDuration / (numNetworkLayers + 1);
+            let currentLayer = 0;
+
+            // Reset wave
+            signalWaveContainer.style.transition = 'none'; signalWaveContainer.style.left = '-30px';
+            void signalWaveContainer.offsetWidth;
+            signalWaveContainer.style.opacity = '1'; signalWaveContainer.style.transition = `left ${stepDuration}ms linear, opacity 0.2s linear`;
+
+            function passLayer() {
+                 if (currentLayer > 0 && currentLayer <= numNetworkLayers) { networkLayerDivs[currentLayer - 1].classList.remove('active'); }
+
+                if (currentLayer >= numNetworkLayers + 1) {
+                    // --- Word Selection Visualization ---
+                    signalWaveContainer.style.opacity = '0';
+                    wordSelectionVis.innerHTML = ''; // Clear previous content
+
+                    // Add alternative words (generic placeholders)
+                    genericAlternatives.forEach(altWord => {
+                        if (altWord !== currentWord) { // Don't show the actual word as an alternative here
+                            const altSpan = document.createElement('span');
+                            altSpan.textContent = altWord;
+                            altSpan.classList.add('prob-word', 'alternative');
+                            wordSelectionVis.appendChild(altSpan);
+                        }
+                    });
+
+                    // Add the selected word
+                    const selectedSpan = document.createElement('span');
+                    selectedSpan.textContent = currentWord;
+                    selectedSpan.classList.add('prob-word', 'selected');
+                    // Insert selected word randomly among alternatives for visual variety
+                    const insertIndex = Math.floor(Math.random() * (wordSelectionVis.children.length + 1));
+                    wordSelectionVis.insertBefore(selectedSpan, wordSelectionVis.children[insertIndex]);
+
+
+                    wordSelectionVis.classList.add('visible');
+
+                    // Hide selection viz and append word
+                    animationControl.timeoutId = setTimeout(() => {
+                        wordSelectionVis.classList.remove('visible');
+                        const span = document.createElement('span');
+                        span.textContent = currentWord + ' ';
+                        span.classList.add('current-word');
+                        overlayOutput.appendChild(span);
+                        animationControl.wordIndex++;
+                        animationControl.timeoutId = setTimeout(animateLLMStep, wordAppendDelay);
+                    }, wordSelectionDuration);
+                    return;
+                }
+
+                const targetX = (currentLayer * (overlayContent.offsetWidth / numNetworkLayers)) - ((overlayContent.offsetWidth / numNetworkLayers) / 2) ;
+                signalWaveContainer.style.left = `${targetX}px`;
+                 if (currentLayer > 0 && currentLayer <= numNetworkLayers) { networkLayerDivs[currentLayer - 1].classList.add('active'); }
+                 currentLayer++;
+                 animationControl.timeoutId = setTimeout(passLayer, stepDuration);
+            }
+            passLayer();
+        }
+
+
+        // --- Core Logic (Query Cycle, Intersection Checks) ---
+        function startQueryCycle() { /* ... (same) ... */ if (queryIntervalId) clearInterval(queryIntervalId); const runQuery = () => { const query = sampleQueries[currentQueryIndex]; currentQuerySpan.textContent = query; processQuery(query); currentQueryIndex = (currentQueryIndex + 1) % sampleQueries.length; }; runQuery(); queryIntervalId = setInterval(runQuery, queryInterval); }
+        function processQuery(query) { /* ... (same) ... */ currentlyQueriedNode = null; const queryLower = query.toLowerCase(); const queryWords = queryLower.split(' '); let bestMatch = null; for (const node of nodes) { const labelLower = node.userData.label.toLowerCase(); const infoLower = node.userData.info.toLowerCase(); let matchScore = 0; for(const word of queryWords) { if (labelLower.includes(word) || infoLower.includes(word) || (node.userData.category && node.userData.category.toLowerCase().includes(word))) { matchScore++; } } if (matchScore > 0) { if (!bestMatch) { bestMatch = node; } } } currentlyQueriedNode = bestMatch; }
+        function checkIntersections() { /* ... (same) ... */ raycaster.setFromCamera(mouse, camera); const intersects = raycaster.intersectObjects(nodes); if (intersectedObject && intersectedObject !== currentlyQueriedNode && intersectedObject !== nodeBeingClicked) { intersectedObject.material.color.copy(intersectedObject.userData.originalColor); } if (intersects.length > 0 && intersects[0].object.userData.isNode) { const currentHover = intersects[0].object; if (intersectedObject !== currentHover && currentHover !== nodeBeingClicked) { intersectedObject = currentHover; if (intersectedObject !== currentlyQueriedNode) { intersectedObject.material.color.set(highlightColor); } infoLabel.textContent = intersectedObject.userData.label; infoDescription.textContent = intersectedObject.userData.info; infoBox.style.display = 'block'; } else if (currentHover === nodeBeingClicked) { intersectedObject = currentHover; infoLabel.textContent = intersectedObject.userData.label; infoDescription.textContent = intersectedObject.userData.info; infoBox.style.display = 'block'; } else if (intersectedObject === currentHover && currentHover !== nodeBeingClicked) { if(intersectedObject !== currentlyQueriedNode) { intersectedObject.material.color.set(highlightColor); } } } else { intersectedObject = null; infoBox.style.display = 'none'; } }
+
+        // --- Main Animation Loop ---
+        function animate() { /* ... (same) ... */ animationFrameId = requestAnimationFrame(animate); const now = Date.now(); const time = now * 0.005; controls.update(); checkIntersections(); nodes.forEach(node => { let targetScale = 1.0; let isClickEffectActive = false; if (node === nodeBeingClicked && now < clickEffectStartTime + clickEffectDuration) { const elapsed = now - clickEffectStartTime; const progress = elapsed / clickEffectDuration; node.material.color.set(clickHighlightColor); targetScale = 1.0 + Math.sin(progress * Math.PI) * 0.5; isClickEffectActive = true; } if (!isClickEffectActive) { if (node === currentlyQueriedNode) { const pulseScale = 1.0 + Math.sin(time * 2) * 0.4; targetScale = pulseScale; if (node !== intersectedObject) { node.material.color.copy(node.userData.originalColor); } else { node.material.color.set(highlightColor); } } else if (node === intersectedObject) { targetScale = 1.3; node.material.color.set(highlightColor); } else { node.material.color.copy(node.userData.originalColor); } } node.scale.set(targetScale, targetScale, targetScale); }); renderer.render(scene, camera); }
+
+        // --- Initialize ---
+        window.onload = init;
+
+    </script>
+</body>
+</html>
