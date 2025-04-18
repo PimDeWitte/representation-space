@@ -12,25 +12,9 @@
         #info-box, #instructions, #query-display { position: absolute; background-color: rgba(0, 0, 0, 0.7); border-radius: 8px; padding: 10px 15px; font-size: 12px; z-index: 10; }
         #info-box { top: 20px; left: 20px; border: 2px solid #0f0; color: #0f0; max-width: 300px; display: none; pointer-events: none; text-shadow: 0 0 5px #0f0; line-height: 1.6; }
         #info-box h3 { margin-top: 0; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; }
-        #instructions {
-            bottom: 15px; /* Adjusted position slightly */
-            left: 50%;
-            transform: translateX(-50%);
-            color: #aaa;
-            font-size: 10px;
-            padding: 5px 10px;
-            text-align: center; /* Center text */
-         }
-         /* Style for the link in the footer */
-         #instructions a {
-             color: #0ff; /* Cyan link color */
-             text-decoration: none;
-             display: block; /* Make link take its own line */
-             margin-top: 5px; /* Space above link */
-         }
-         #instructions a:hover {
-             text-decoration: underline;
-         }
+        #instructions { bottom: 15px; left: 50%; transform: translateX(-50%); color: #aaa; font-size: 10px; padding: 5px 10px; text-align: center; }
+        #instructions a { color: #0ff; text-decoration: none; display: block; margin-top: 5px; }
+        #instructions a:hover { text-decoration: underline; }
         #query-display { top: 20px; right: 20px; border: 2px solid #0ff; color: #0ff; text-shadow: 0 0 5px #0ff; }
 
         /* --- Overlay Styles --- */
@@ -52,6 +36,9 @@
         #overlay-output-container { width: 80%; max-width: 800px; min-height: 80px; text-align: left; border: 1px dashed #0ff; padding: 15px; border-radius: 5px; background-color: rgba(0, 50, 50, 0.3); margin-top: 10px; }
         #overlay-output { font-size: 16px; color: #0f0; text-shadow: 0 0 8px #0f0; line-height: 1.6; }
         #overlay-output .current-word { background-color: rgba(0, 255, 0, 0.3); padding: 0 2px; border-radius: 2px; animation: fadeHighlight 0.8s forwards; }
+        #overlay-explanation { color: #888; font-size: 10px; margin-top: 20px; max-width: 600px; text-align: center; line-height: 1.5; }
+        #overlay-explanation a { color: #aaa; text-decoration: underline; }
+        #overlay-explanation a:hover { color: #ccc; }
         #close-overlay-btn { position: absolute; top: 20px; right: 20px; background-color: #ff0000; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-family: 'Press Start 2P', cursive; font-size: 14px; box-shadow: 0 0 10px #ff0000; transition: background-color 0.2s; }
         #close-overlay-btn:hover { background-color: #cc0000; }
 
@@ -80,6 +67,9 @@
         </div>
         <div id="overlay-output-container">
             <p id="overlay-output"></p> </div>
+         <div id="overlay-explanation">
+             This is a simplified view of how LLMs generate words, for a great tutorial on how this actually works, see <a href="https://www.youtube.com/watch?v=7xTGNNLPyMI&pp=ygUPa2FycGF0aHkgYW5kcmVq" target="_blank" rel="noopener noreferrer">https://www.youtube.com/watch?v=7xTGNNLPyMI&pp=ygUPa2FycGF0aHkgYW5kcmVq</a>
+         </div>
         <button id="close-overlay-btn">X</button>
     </div>
 
@@ -97,6 +87,8 @@
         const clickEffectDuration = 500; const transitionDelay = 500; const newNodeSpread = 6;
         const numSignalDots = 5;
         const layerPassDuration = 1200; const wordSelectionDuration = 450; const wordAppendDelay = 100;
+        const clusterLineColor = 0x555555;
+        const clusterLineGlowColor = 0xffffff; // White glow
 
         // --- Helper Functions ---
         function randomPosition(baseX, baseY, baseZ, spread) { return new THREE.Vector3( baseX + (Math.random() * spread - spread / 2), baseY + (Math.random() * spread - spread / 2), baseZ + (Math.random() * spread - spread / 2) ); }
@@ -116,49 +108,20 @@
             "Verb": { labels: ["Run", "Walk", "Think", "Create", "Analyze", "Synthesize", "Communicate", "Observe", "Learn", "Teach", "Build", "Destroy", "Explore", "Discover", "Imagine", "Calculate", "Measure", "Predict", "Test", "Validate"], base: [5, 15, -15] },
             "Adjective": { labels: ["Fast", "Slow", "Bright", "Dark", "Complex", "Simple", "Abstract", "Concrete", "Large", "Small", "Hot", "Cold", "Heavy", "Light", "Hard", "Soft", "Rough", "Smooth", "Sharp", "Dull"], base: [5, -15, -15] }
         };
-        const clusterCenters = []; // Store cluster centers for drawing lines
-        for (const categoryName in categories) {
-             const category = categories[categoryName]; const [bx, by, bz] = category.base;
-             clusterCenters.push(new THREE.Vector3(bx, by, bz)); // Add center point
-             category.labels.forEach(label => { /* ... (same node generation) ... */
-                 generatedNodes.push({ position: randomPosition(bx, by, bz, newNodeSpread), label: label, category: categoryName, info: `...`, color: Math.random() * 0xffffff, sentence: `Concept '${label}' represents the ${categoryName.toLowerCase()} ${label}.` }); // Updated sentence slightly
-             });
+        const clusterCenters = {};
+        for (const categoryName in categories) { /* ... (same generation logic, includes clusterCenter) ... */
+             const category = categories[categoryName]; const [bx, by, bz] = category.base; const centerPoint = new THREE.Vector3(bx, by, bz); clusterCenters[categoryName] = centerPoint;
+             category.labels.forEach(label => { generatedNodes.push({ position: randomPosition(bx, by, bz, newNodeSpread), label: label, category: categoryName, clusterCenter: centerPoint, info: `...`, color: Math.random() * 0xffffff, sentence: `Concept '${label}' represents the ${categoryName.toLowerCase()} ${label}.` }); });
         }
         generatedNodes.forEach(n => { if (!n.info) n.info = `Info about ${n.label}.`; });
 
         // --- Original Sample Data ---
-        const originalNodesData = [ /* ... (same original data with category added) ... */
-             { position: new THREE.Vector3(5, 0, 0), label: "Apple", category: "Fruit", info: "...", color: 0xff0000, sentence: "The system identifies 'Apple' as a type of common fruit." },
-             { position: new THREE.Vector3(5.5, 0.5, 0.2), label: "Banana", category: "Fruit", info: "...", color: 0xffff00, sentence: "Processing concept... 'Banana' is recognized as a tropical fruit." },
-             { position: new THREE.Vector3(4.8, -0.3, -0.5), label: "Orange", category: "Fruit", info: "...", color: 0xffa500, sentence: "Concept activated: 'Orange', a citrus fruit high in vitamins." },
-             { position: new THREE.Vector3(5.2, 0.8, -0.8), label: "Grape", category: "Fruit", info: "...", color: 0x800080, sentence: "Representation decoded: 'Grape', often found in vineyards." },
-             { position: new THREE.Vector3(-5, 0, 0), label: "Red", category: "Color", info: "...", color: 0xff0000, sentence: "Color vector 'Red' is activated in the spectrum space." },
-             { position: new THREE.Vector3(-5.2, 0.6, -0.3), label: "Green", category: "Color", info: "...", color: 0x00ff00, sentence: "Concept 'Green' represents wavelengths associated with nature." },
-             { position: new THREE.Vector3(-4.5, -0.5, 0.4), label: "Blue", category: "Color", info: "...", color: 0x0000ff, sentence: "The concept 'Blue' relates to sky and water elements." },
-             { position: new THREE.Vector3(-5.5, -0.2, -0.6), label: "Yellow", category: "Color", info: "...", color: 0xffff00, sentence: "Feature detected: 'Yellow', a bright primary color." },
-             { position: new THREE.Vector3(0, 0, 5), label: "Abstract", category: "Concept", info: "...", color: 0xaaaaaa, sentence: "Conceptual input 'Abstract' signifies non-physical ideas." },
-             { position: new THREE.Vector3(0.5, 0.5, 5.5), label: "Concrete", category: "Concept", info: "...", color: 0x555555, sentence: "Input 'Concrete' pertains to tangible, physical objects." },
-             { position: new THREE.Vector3(-0.3, -0.4, 4.8), label: "Idea", category: "Concept", info: "...", color: 0xcccccc, sentence: "The 'Idea' input represents thoughts and suggestions." },
-             { position: new THREE.Vector3(0, 5, 0), label: "Dog", category: "Animal", info: "...", color: 0x8B4513, sentence: "Animal identified: 'Dog', a common domesticated mammal." },
-             { position: new THREE.Vector3(0.5, 5.5, 0.3), label: "Cat", category: "Animal", info: "...", color: 0x808080, sentence: "Recognized entity: 'Cat', a feline companion animal." },
-             { position: new THREE.Vector3(-0.4, 4.8, -0.2), label: "Bird", category: "Animal", info: "...", color: 0xADD8E6, sentence: "Concept 'Bird' relates to avian vertebrates with feathers." },
-             { position: new THREE.Vector3(0.2, 5.2, -0.5), label: "Fish", category: "Animal", info: "...", color: 0x00008B, sentence: "Aquatic lifeform 'Fish' identified in the biological space." },
-             { position: new THREE.Vector3(0, -5, 0), label: "Car", category: "Vehicle", info: "...", color: 0x708090, sentence: "Vehicle type 'Car' represents common road transport." },
-             { position: new THREE.Vector3(0.6, -5.4, 0.1), label: "Bicycle", category: "Vehicle", info: "...", color: 0xB0C4DE, sentence: "Concept 'Bicycle' signifies human-powered two-wheeled transport." },
-             { position: new THREE.Vector3(-0.5, -4.7, -0.3), label: "Airplane", category: "Vehicle", info: "...", color: 0xD3D3D3, sentence: "Transport mode 'Airplane' enables powered flight." },
-             { position: new THREE.Vector3(0.3, -5.8, -0.6), label: "Boat", category: "Vehicle", info: "...", color: 0x4682B4, sentence: "Watercraft 'Boat' identified for travel on water." },
+        const originalNodesData = [ /* ... (same original data with category and clusterCenter added) ... */
+             { position: new THREE.Vector3(5, 0, 0), label: "Apple", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0xff0000, sentence: "..." }, { position: new THREE.Vector3(5.5, 0.5, 0.2), label: "Banana", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0xffff00, sentence: "..." }, { position: new THREE.Vector3(4.8, -0.3, -0.5), label: "Orange", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0xffa500, sentence: "..." }, { position: new THREE.Vector3(5.2, 0.8, -0.8), label: "Grape", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0x800080, sentence: "..." }, { position: new THREE.Vector3(-5, 0, 0), label: "Red", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0xff0000, sentence: "..." }, { position: new THREE.Vector3(-5.2, 0.6, -0.3), label: "Green", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0x00ff00, sentence: "..." }, { position: new THREE.Vector3(-4.5, -0.5, 0.4), label: "Blue", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0x0000ff, sentence: "..." }, { position: new THREE.Vector3(-5.5, -0.2, -0.6), label: "Yellow", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0xffff00, sentence: "..." }, { position: new THREE.Vector3(0, 0, 5), label: "Abstract", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "...", color: 0xaaaaaa, sentence: "..." }, { position: new THREE.Vector3(0.5, 0.5, 5.5), label: "Concrete", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "...", color: 0x555555, sentence: "..." }, { position: new THREE.Vector3(-0.3, -0.4, 4.8), label: "Idea", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "...", color: 0xcccccc, sentence: "..." }, { position: new THREE.Vector3(0, 5, 0), label: "Dog", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0x8B4513, sentence: "..." }, { position: new THREE.Vector3(0.5, 5.5, 0.3), label: "Cat", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0x808080, sentence: "..." }, { position: new THREE.Vector3(-0.4, 4.8, -0.2), label: "Bird", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0xADD8E6, sentence: "..." }, { position: new THREE.Vector3(0.2, 5.2, -0.5), label: "Fish", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0x00008B, sentence: "..." }, { position: new THREE.Vector3(0, -5, 0), label: "Car", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0x708090, sentence: "..." }, { position: new THREE.Vector3(0.6, -5.4, 0.1), label: "Bicycle", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0xB0C4DE, sentence: "..." }, { position: new THREE.Vector3(-0.5, -4.7, -0.3), label: "Airplane", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0xD3D3D3, sentence: "..." }, { position: new THREE.Vector3(0.3, -5.8, -0.6), label: "Boat", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0x4682B4, sentence: "..." },
         ];
-        originalNodesData.forEach(n => { if (!n.info) n.info = `Info about ${n.label}.`; });
-        // Add original cluster centers if they weren't part of the categories object
-        const originalCenters = [
-            new THREE.Vector3(5, 0, 0), // Approx Fruit center
-            new THREE.Vector3(-5, 0, 0), // Approx Color center
-            new THREE.Vector3(0, 0, 5), // Approx Concept center
-            new THREE.Vector3(0, 5, 0), // Approx Animal center
-            new THREE.Vector3(0, -5, 0) // Approx Vehicle center
-        ];
-        clusterCenters.push(...originalCenters);
-
+        originalNodesData.forEach(n => { /* ... (same default info/sentence/center assignment) ... */
+            if (!n.info) n.info = `Info about ${n.label}.`; if (!n.sentence) n.sentence = `Sentence about ${n.label}.`; if (!n.clusterCenter) { if (n.category === "Fruit") n.clusterCenter = new THREE.Vector3(5, 0, 0); else if (n.category === "Color") n.clusterCenter = new THREE.Vector3(-5, 0, 0); else if (n.category === "Concept") n.clusterCenter = new THREE.Vector3(0, 0, 5); else if (n.category === "Animal") n.clusterCenter = new THREE.Vector3(0, 5, 0); else if (n.category === "Vehicle") n.clusterCenter = new THREE.Vector3(0, -5, 0); else n.clusterCenter = new THREE.Vector3(0,0,0); } if (!clusterCenters[n.category]) { clusterCenters[n.category] = n.clusterCenter; }
+         });
 
         const nodesData = [...originalNodesData, ...generatedNodes];
         const sampleQueries = ["Yellow Fruit", "Flying Vehicle", "Pet", "Primary Color", "Grows in Water", "Citrus", "Idea", "Engine Powered", "Element", "City", "Country", "Shape", "Instrument", "Emotion", "Science Concept", "Math Concept", "Verb", "Adjective"];
@@ -168,6 +131,9 @@
         let scene, camera, renderer, controls; let raycaster, mouse; let nodes = [];
         let intersectedObject = null; let currentlyQueriedNode = null; let queryIntervalId = null;
         let animationFrameId = null; let nodeBeingClicked = null; let clickEffectStartTime = 0;
+        let clusterConnectionLines = [];
+        let defaultLineMaterial, glowLineMaterial;
+
         const infoBox = document.getElementById('info-box'); /* ... other DOM refs ... */
         const infoLabel = document.getElementById('info-label'); const infoDescription = document.getElementById('info-description');
         const canvas = document.getElementById('representation-canvas'); const currentQuerySpan = document.getElementById('current-query'); const mainVisualizationDiv = document.getElementById('main-visualization');
@@ -190,33 +156,31 @@
 
             // Create Concept Nodes
             const geometry = new THREE.SphereGeometry(nodeSize, 16, 8);
-            nodesData.forEach(data => { /* ... (same node creation) ... */
+            nodesData.forEach(data => { /* ... (same node creation, includes clusterCenter) ... */
                  const material = new THREE.MeshLambertMaterial({ color: data.color || defaultColor }); const nodeMesh = new THREE.Mesh(geometry, material); nodeMesh.position.copy(data.position);
-                 nodeMesh.userData = { label: data.label, info: data.info, sentence: data.sentence, category: data.category, originalColor: new THREE.Color(data.color || defaultColor), isNode: true };
+                 nodeMesh.userData = { label: data.label, info: data.info, sentence: data.sentence, category: data.category, clusterCenter: data.clusterCenter, originalColor: new THREE.Color(data.color || defaultColor), isNode: true };
                  scene.add(nodeMesh); nodes.push(nodeMesh);
              });
 
-             // Create Cluster Connection Lines
-             const points = [];
-             for (let i = 0; i < clusterCenters.length; i++) {
-                 for (let j = i + 1; j < clusterCenters.length; j++) {
-                     points.push(clusterCenters[i]);
-                     points.push(clusterCenters[j]);
+             // Create Cluster Connection Lines Materials
+             defaultLineMaterial = new THREE.LineBasicMaterial({ color: clusterLineColor, transparent: true, opacity: 0.3 });
+             glowLineMaterial = new THREE.LineBasicMaterial({ color: clusterLineGlowColor, transparent: true, opacity: 1.0 }); // Base glow material (opacity set on clone)
+
+             // Create Individual Cluster Connection Lines
+             const centerPoints = Object.values(clusterCenters);
+             for (let i = 0; i < centerPoints.length; i++) {
+                 for (let j = i + 1; j < centerPoints.length; j++) {
+                     const points = [centerPoints[i], centerPoints[j]];
+                     const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+                     const line = new THREE.Line(lineGeometry, defaultLineMaterial); // Start with default material
+                     scene.add(line);
+                     clusterConnectionLines.push({ line: line, centerA: centerPoints[i], centerB: centerPoints[j] });
                  }
              }
-             const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-             const lineMaterial = new THREE.LineBasicMaterial({
-                 color: 0x555555, // Dark grey
-                 transparent: true,
-                 opacity: 0.3 // Semi-transparent
-             });
-             const clusterLines = new THREE.LineSegments(lineGeometry, lineMaterial);
-             scene.add(clusterLines);
 
-
-            // Create signal dot elements once
+            // Create signal dot elements
             signalWaveContainer.innerHTML = '';
-            for (let i = 0; i < numSignalDots; i++) { /* ... (same dot creation) ... */
+            for (let i = 0; i < numSignalDots; sv i++) { /* ... (same dot creation) ... */
                 const dot = document.createElement('div'); dot.classList.add('signal-dot-item');
                 dot.style.top = `${(i / (numSignalDots - 1)) * 100 - 50}%`; dot.style.transform = `translateY(-50%)`;
                 signalWaveContainer.appendChild(dot);
@@ -234,7 +198,6 @@
         // --- Event Handlers ---
         function onWindowResize() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
         function onMouseMove(event) { mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1; }
-
         function onCanvasClick(event) { /* ... (same click logic) ... */
             if (animationOverlay.style.display === 'flex' || nodeBeingClicked) return;
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -256,8 +219,6 @@
             animationControl.words = sentence.split(' '); animationControl.wordIndex = 0; animateLLMStep();
         }
         function hideAnimationOverlay() { /* ... (same) ... */ clearTimeout(animationControl.timeoutId); animationOverlay.style.display = 'none'; mainVisualizationDiv.style.display = 'block'; nodeBeingClicked = null; startAnimationLoop(); }
-
-        // Updated animateLLMStep with probability viz
         function animateLLMStep() { /* ... (same logic as before for word selection viz) ... */
             if (animationControl.wordIndex >= animationControl.words.length) { wordSelectionVis.innerHTML = `<span class="prob-word selected">Complete!</span>`; wordSelectionVis.classList.add('visible'); animationControl.timeoutId = setTimeout(() => wordSelectionVis.classList.remove('visible'), 1500); return; }
             const currentWord = animationControl.words[animationControl.wordIndex]; const stepDuration = layerPassDuration / (numNetworkLayers + 1); let currentLayer = 0;
@@ -279,7 +240,39 @@
 
         // --- Core Logic (Query Cycle, Intersection Checks) ---
         function startQueryCycle() { /* ... (same) ... */ if (queryIntervalId) clearInterval(queryIntervalId); const runQuery = () => { const query = sampleQueries[currentQueryIndex]; currentQuerySpan.textContent = query; processQuery(query); currentQueryIndex = (currentQueryIndex + 1) % sampleQueries.length; }; runQuery(); queryIntervalId = setInterval(runQuery, queryInterval); }
-        function processQuery(query) { /* ... (same) ... */ currentlyQueriedNode = null; const queryLower = query.toLowerCase(); const queryWords = queryLower.split(' '); let bestMatch = null; for (const node of nodes) { const labelLower = node.userData.label.toLowerCase(); const infoLower = node.userData.info.toLowerCase(); let matchScore = 0; for(const word of queryWords) { if (labelLower.includes(word) || infoLower.includes(word) || (node.userData.category && node.userData.category.toLowerCase().includes(word))) { matchScore++; } } if (matchScore > 0) { if (!bestMatch) { bestMatch = node; } } } currentlyQueriedNode = bestMatch; }
+
+        // Updated processQuery for random line glow opacity (reduced range)
+        function processQuery(query) {
+            currentlyQueriedNode = null;
+            // Reset all lines to default material FIRST
+            clusterConnectionLines.forEach(lineData => {
+                // Check if the current material is not the default one before replacing
+                // This avoids unnecessary material assignments if many lines were already default
+                if (lineData.line.material !== defaultLineMaterial) {
+                     lineData.line.material = defaultLineMaterial;
+                }
+                // We don't need to reset opacity explicitly here, as we assign the default material
+            });
+
+            const queryLower = query.toLowerCase(); const queryWords = queryLower.split(' '); let bestMatch = null;
+            for (const node of nodes) { /* ... (find bestMatch same as before) ... */
+                const labelLower = node.userData.label.toLowerCase(); const infoLower = node.userData.info.toLowerCase(); let matchScore = 0; for(const word of queryWords) { if (labelLower.includes(word) || infoLower.includes(word) || (node.userData.category && node.userData.category.toLowerCase().includes(word))) { matchScore++; } } if (matchScore > 0) { if (!bestMatch) { bestMatch = node; } }
+            }
+            currentlyQueriedNode = bestMatch;
+
+            if (currentlyQueriedNode && currentlyQueriedNode.userData.clusterCenter) {
+                const targetCenter = currentlyQueriedNode.userData.clusterCenter;
+                clusterConnectionLines.forEach(lineData => {
+                    if (lineData.centerA.equals(targetCenter) || lineData.centerB.equals(targetCenter)) {
+                        // Clone the glow material to set unique opacity
+                        lineData.line.material = glowLineMaterial.clone();
+                        // Set random opacity simulating weight/activation strength (Reduced Range)
+                        lineData.line.material.opacity = (Math.random() * 0.5 + 0.5) * 0.5; // Range 0.25 to 0.5
+                    }
+                });
+            }
+         }
+
         function checkIntersections() { /* ... (same) ... */ raycaster.setFromCamera(mouse, camera); const intersects = raycaster.intersectObjects(nodes); if (intersectedObject && intersectedObject !== currentlyQueriedNode && intersectedObject !== nodeBeingClicked) { intersectedObject.material.color.copy(intersectedObject.userData.originalColor); } if (intersects.length > 0 && intersects[0].object.userData.isNode) { const currentHover = intersects[0].object; if (intersectedObject !== currentHover && currentHover !== nodeBeingClicked) { intersectedObject = currentHover; if (intersectedObject !== currentlyQueriedNode) { intersectedObject.material.color.set(highlightColor); } infoLabel.textContent = intersectedObject.userData.label; infoDescription.textContent = intersectedObject.userData.info; infoBox.style.display = 'block'; } else if (currentHover === nodeBeingClicked) { intersectedObject = currentHover; infoLabel.textContent = intersectedObject.userData.label; infoDescription.textContent = intersectedObject.userData.info; infoBox.style.display = 'block'; } else if (intersectedObject === currentHover && currentHover !== nodeBeingClicked) { if(intersectedObject !== currentlyQueriedNode) { intersectedObject.material.color.set(highlightColor); } } } else { intersectedObject = null; infoBox.style.display = 'none'; } }
 
         // --- Main Animation Loop ---
