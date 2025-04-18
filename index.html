@@ -93,6 +93,8 @@
         // --- Helper Functions ---
         function randomPosition(baseX, baseY, baseZ, spread) { return new THREE.Vector3( baseX + (Math.random() * spread - spread / 2), baseY + (Math.random() * spread - spread / 2), baseZ + (Math.random() * spread - spread / 2) ); }
         const genericAlternatives = ["the", "a", "is"];
+        // Delay helper for async/await
+        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
         // --- Node Data Generation ---
         const generatedNodes = [];
@@ -117,7 +119,7 @@
 
         // --- Original Sample Data ---
         const originalNodesData = [ /* ... (same original data with category and clusterCenter added) ... */
-             { position: new THREE.Vector3(5, 0, 0), label: "Apple", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0xff0000, sentence: "..." }, { position: new THREE.Vector3(5.5, 0.5, 0.2), label: "Banana", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0xffff00, sentence: "..." }, { position: new THREE.Vector3(4.8, -0.3, -0.5), label: "Orange", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0xffa500, sentence: "..." }, { position: new THREE.Vector3(5.2, 0.8, -0.8), label: "Grape", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0x800080, sentence: "..." }, { position: new THREE.Vector3(-5, 0, 0), label: "Red", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0xff0000, sentence: "..." }, { position: new THREE.Vector3(-5.2, 0.6, -0.3), label: "Green", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0x00ff00, sentence: "..." }, { position: new THREE.Vector3(-4.5, -0.5, 0.4), label: "Blue", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0x0000ff, sentence: "..." }, { position: new THREE.Vector3(-5.5, -0.2, -0.6), label: "Yellow", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0xffff00, sentence: "..." }, { position: new THREE.Vector3(0, 0, 5), label: "Abstract", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "...", color: 0xaaaaaa, sentence: "..." }, { position: new THREE.Vector3(0.5, 0.5, 5.5), label: "Concrete", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "...", color: 0x555555, sentence: "..." }, { position: new THREE.Vector3(-0.3, -0.4, 4.8), label: "Idea", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "...", color: 0xcccccc, sentence: "..." }, { position: new THREE.Vector3(0, 5, 0), label: "Dog", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0x8B4513, sentence: "..." }, { position: new THREE.Vector3(0.5, 5.5, 0.3), label: "Cat", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0x808080, sentence: "..." }, { position: new THREE.Vector3(-0.4, 4.8, -0.2), label: "Bird", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0xADD8E6, sentence: "..." }, { position: new THREE.Vector3(0.2, 5.2, -0.5), label: "Fish", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0x00008B, sentence: "..." }, { position: new THREE.Vector3(0, -5, 0), label: "Car", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0x708090, sentence: "..." }, { position: new THREE.Vector3(0.6, -5.4, 0.1), label: "Bicycle", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0xB0C4DE, sentence: "..." }, { position: new THREE.Vector3(-0.5, -4.7, -0.3), label: "Airplane", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0xD3D3D3, sentence: "..." }, { position: new THREE.Vector3(0.3, -5.8, -0.6), label: "Boat", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0x4682B4, sentence: "..." },
+             { position: new THREE.Vector3(5, 0, 0), label: "Apple", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0xff0000, sentence: "The system identifies 'Apple' as a type of common fruit." }, { position: new THREE.Vector3(5.5, 0.5, 0.2), label: "Banana", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0xffff00, sentence: "Processing concept... 'Banana' is recognized as a tropical fruit." }, { position: new THREE.Vector3(4.8, -0.3, -0.5), label: "Orange", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0xffa500, sentence: "Concept activated: 'Orange', a citrus fruit high in vitamins." }, { position: new THREE.Vector3(5.2, 0.8, -0.8), label: "Grape", category: "Fruit", clusterCenter: new THREE.Vector3(5, 0, 0), info: "...", color: 0x800080, sentence: "Representation decoded: 'Grape', often found in vineyards." }, { position: new THREE.Vector3(-5, 0, 0), label: "Red", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0xff0000, sentence: "Color vector 'Red' is activated in the spectrum space." }, { position: new THREE.Vector3(-5.2, 0.6, -0.3), label: "Green", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0x00ff00, sentence: "Concept 'Green' represents wavelengths associated with nature." }, { position: new THREE.Vector3(-4.5, -0.5, 0.4), label: "Blue", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0x0000ff, sentence: "The concept 'Blue' relates to sky and water elements." }, { position: new THREE.Vector3(-5.5, -0.2, -0.6), label: "Yellow", category: "Color", clusterCenter: new THREE.Vector3(-5, 0, 0), info: "...", color: 0xffff00, sentence: "Feature detected: 'Yellow', a bright primary color." }, { position: new THREE.Vector3(0, 0, 5), label: "Abstract", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "...", color: 0xaaaaaa, sentence: "Conceptual input 'Abstract' signifies non-physical ideas." }, { position: new THREE.Vector3(0.5, 0.5, 5.5), label: "Concrete", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "...", color: 0x555555, sentence: "Input 'Concrete' pertains to tangible, physical objects." }, { position: new THREE.Vector3(-0.3, -0.4, 4.8), label: "Idea", category: "Concept", clusterCenter: new THREE.Vector3(0, 0, 5), info: "...", color: 0xcccccc, sentence: "The 'Idea' input represents thoughts and suggestions." }, { position: new THREE.Vector3(0, 5, 0), label: "Dog", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0x8B4513, sentence: "Animal identified: 'Dog', a common domesticated mammal." }, { position: new THREE.Vector3(0.5, 5.5, 0.3), label: "Cat", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0x808080, sentence: "Recognized entity: 'Cat', a feline companion animal." }, { position: new THREE.Vector3(-0.4, 4.8, -0.2), label: "Bird", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0xADD8E6, sentence: "Concept 'Bird' relates to avian vertebrates with feathers." }, { position: new THREE.Vector3(0.2, 5.2, -0.5), label: "Fish", category: "Animal", clusterCenter: new THREE.Vector3(0, 5, 0), info: "...", color: 0x00008B, sentence: "Aquatic lifeform 'Fish' identified in the biological space." }, { position: new THREE.Vector3(0, -5, 0), label: "Car", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0x708090, sentence: "Vehicle type 'Car' represents common road transport." }, { position: new THREE.Vector3(0.6, -5.4, 0.1), label: "Bicycle", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0xB0C4DE, sentence: "Concept 'Bicycle' signifies human-powered two-wheeled transport." }, { position: new THREE.Vector3(-0.5, -4.7, -0.3), label: "Airplane", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0xD3D3D3, sentence: "Transport mode 'Airplane' enables powered flight." }, { position: new THREE.Vector3(0.3, -5.8, -0.6), label: "Boat", category: "Vehicle", clusterCenter: new THREE.Vector3(0, -5, 0), info: "...", color: 0x4682B4, sentence: "Watercraft 'Boat' identified for travel on water." },
         ];
         originalNodesData.forEach(n => { /* ... (same default info/sentence/center assignment) ... */
             if (!n.info) n.info = `Info about ${n.label}.`; if (!n.sentence) n.sentence = `Sentence about ${n.label}.`; if (!n.clusterCenter) { if (n.category === "Fruit") n.clusterCenter = new THREE.Vector3(5, 0, 0); else if (n.category === "Color") n.clusterCenter = new THREE.Vector3(-5, 0, 0); else if (n.category === "Concept") n.clusterCenter = new THREE.Vector3(0, 0, 5); else if (n.category === "Animal") n.clusterCenter = new THREE.Vector3(0, 5, 0); else if (n.category === "Vehicle") n.clusterCenter = new THREE.Vector3(0, -5, 0); else n.clusterCenter = new THREE.Vector3(0,0,0); } if (!clusterCenters[n.category]) { clusterCenters[n.category] = n.clusterCenter; }
@@ -132,7 +134,7 @@
         let intersectedObject = null; let currentlyQueriedNode = null; let queryIntervalId = null;
         let animationFrameId = null; let nodeBeingClicked = null; let clickEffectStartTime = 0;
         let clusterConnectionLines = [];
-        let defaultLineMaterial, glowLineMaterial;
+        let defaultLineMaterial, glowLineMaterial; // Note: glowLineMaterial is now just the base, cloned for activation
 
         const infoBox = document.getElementById('info-box'); /* ... other DOM refs ... */
         const infoLabel = document.getElementById('info-label'); const infoDescription = document.getElementById('info-description');
@@ -164,7 +166,7 @@
 
              // Create Cluster Connection Lines Materials
              defaultLineMaterial = new THREE.LineBasicMaterial({ color: clusterLineColor, transparent: true, opacity: 0.3 });
-             glowLineMaterial = new THREE.LineBasicMaterial({ color: clusterLineGlowColor, transparent: true, opacity: 1.0 }); // Base glow material (opacity set on clone)
+             glowLineMaterial = new THREE.LineBasicMaterial({ color: clusterLineGlowColor, transparent: true, opacity: 1.0 }); // Base glow material, opacity set on clone
 
              // Create Individual Cluster Connection Lines
              const centerPoints = Object.values(clusterCenters);
@@ -172,7 +174,7 @@
                  for (let j = i + 1; j < centerPoints.length; j++) {
                      const points = [centerPoints[i], centerPoints[j]];
                      const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-                     const line = new THREE.Line(lineGeometry, defaultLineMaterial); // Start with default material
+                     const line = new THREE.Line(lineGeometry, defaultLineMaterial);
                      scene.add(line);
                      clusterConnectionLines.push({ line: line, centerA: centerPoints[i], centerB: centerPoints[j] });
                  }
@@ -212,31 +214,99 @@
         }
 
         // --- Overlay Animation Logic ---
-        let animationControl = { timeoutId: null, wordIndex: 0, words: [] };
-        function showAnimationOverlay(label, sentence) { /* ... (same setup logic) ... */
-            stopAnimationLoop(); mainVisualizationDiv.style.display = 'none'; overlayNodeLabel.textContent = `LLM Generation for Concept: ${label}`; animationOverlay.style.display = 'flex';
-            clearTimeout(animationControl.timeoutId); signalWaveContainer.style.transition = 'none'; signalWaveContainer.style.opacity = '0'; signalWaveContainer.style.left = '-30px'; overlayOutput.innerHTML = ''; wordSelectionVis.innerHTML = ''; wordSelectionVis.classList.remove('visible'); networkLayerDivs.forEach(layer => layer.classList.remove('active')); void signalWaveContainer.offsetWidth;
-            animationControl.words = sentence.split(' '); animationControl.wordIndex = 0; animateLLMStep();
+        let animationControl = { timeoutId: null, wordIndex: 0, words: [], isCancelled: false }; // Added cancel flag
+
+        function showAnimationOverlay(label, sentence) {
+            stopAnimationLoop(); mainVisualizationDiv.style.display = 'none';
+            overlayNodeLabel.textContent = `LLM Generation for Concept: ${label}`;
+            animationOverlay.style.display = 'flex';
+
+            // Reset state
+            clearTimeout(animationControl.timeoutId); // Clear any pending timeouts
+            animationControl.isCancelled = false; // Reset cancel flag
+            signalWaveContainer.style.transition = 'none'; signalWaveContainer.style.opacity = '0'; signalWaveContainer.style.left = '-30px';
+            overlayOutput.innerHTML = '';
+            wordSelectionVis.innerHTML = ''; wordSelectionVis.classList.remove('visible');
+            networkLayerDivs.forEach(layer => layer.classList.remove('active'));
+            void signalWaveContainer.offsetWidth;
+
+            animationControl.words = sentence.split(' ');
+            animationControl.wordIndex = 0;
+            animateLLMStep(); // Start the animation
         }
-        function hideAnimationOverlay() { /* ... (same) ... */ clearTimeout(animationControl.timeoutId); animationOverlay.style.display = 'none'; mainVisualizationDiv.style.display = 'block'; nodeBeingClicked = null; startAnimationLoop(); }
-        function animateLLMStep() { /* ... (same logic as before for word selection viz) ... */
-            if (animationControl.wordIndex >= animationControl.words.length) { wordSelectionVis.innerHTML = `<span class="prob-word selected">Complete!</span>`; wordSelectionVis.classList.add('visible'); animationControl.timeoutId = setTimeout(() => wordSelectionVis.classList.remove('visible'), 1500); return; }
-            const currentWord = animationControl.words[animationControl.wordIndex]; const stepDuration = layerPassDuration / (numNetworkLayers + 1); let currentLayer = 0;
-            signalWaveContainer.style.transition = 'none'; signalWaveContainer.style.left = '-30px'; void signalWaveContainer.offsetWidth; signalWaveContainer.style.opacity = '1'; signalWaveContainer.style.transition = `left ${stepDuration}ms linear, opacity 0.2s linear`;
-            function passLayer() {
-                 if (currentLayer > 0 && currentLayer <= numNetworkLayers) { networkLayerDivs[currentLayer - 1].classList.remove('active'); }
-                if (currentLayer >= numNetworkLayers + 1) {
-                    signalWaveContainer.style.opacity = '0'; wordSelectionVis.innerHTML = '';
-                    genericAlternatives.forEach(altWord => { if (altWord !== currentWord) { const altSpan = document.createElement('span'); altSpan.textContent = altWord; altSpan.classList.add('prob-word', 'alternative'); wordSelectionVis.appendChild(altSpan); } });
-                    const selectedSpan = document.createElement('span'); selectedSpan.textContent = currentWord; selectedSpan.classList.add('prob-word', 'selected'); const insertIndex = Math.floor(Math.random() * (wordSelectionVis.children.length + 1)); wordSelectionVis.insertBefore(selectedSpan, wordSelectionVis.children[insertIndex]);
-                    wordSelectionVis.classList.add('visible');
-                    animationControl.timeoutId = setTimeout(() => { wordSelectionVis.classList.remove('visible'); const span = document.createElement('span'); span.textContent = currentWord + ' '; span.classList.add('current-word'); overlayOutput.appendChild(span); animationControl.wordIndex++; animationControl.timeoutId = setTimeout(animateLLMStep, wordAppendDelay); }, wordSelectionDuration); return;
+
+        function hideAnimationOverlay() {
+             animationControl.isCancelled = true; // Set flag to stop ongoing animation loops
+             clearTimeout(animationControl.timeoutId); // Clear any pending timeouts
+             animationOverlay.style.display = 'none'; mainVisualizationDiv.style.display = 'block';
+             nodeBeingClicked = null; startAnimationLoop();
+        }
+
+        // Refactored using async/await and cancel flag
+        async function animateLLMStep() {
+            if (animationControl.isCancelled) return; // Stop if cancelled
+
+            if (animationControl.wordIndex >= animationControl.words.length) {
+                wordSelectionVis.innerHTML = `<span class="prob-word selected">Complete!</span>`;
+                wordSelectionVis.classList.add('visible');
+                animationControl.timeoutId = setTimeout(() => { if (!animationControl.isCancelled) wordSelectionVis.classList.remove('visible'); }, 1500);
+                return;
+            }
+
+            const currentWord = animationControl.words[animationControl.wordIndex];
+            const stepDuration = layerPassDuration / (numNetworkLayers + 1);
+
+            // --- Pass through layers ---
+            signalWaveContainer.style.transition = 'none'; // Reset for positioning
+            signalWaveContainer.style.left = '-30px';
+            void signalWaveContainer.offsetWidth;
+            signalWaveContainer.style.opacity = '1';
+            signalWaveContainer.style.transition = `left ${stepDuration}ms linear, opacity 0.2s linear`; // Apply transition for movement
+
+            for (let currentLayer = 1; currentLayer <= numNetworkLayers + 1; currentLayer++) {
+                if (animationControl.isCancelled) return; // Check cancellation during loop
+
+                // Calculate target position
+                const targetX = ( (currentLayer -1) * (overlayContent.offsetWidth / numNetworkLayers)) ; // Move towards start of next segment
+                signalWaveContainer.style.left = `${targetX}px`;
+
+                // Highlight current layer, unhighlight previous
+                if (currentLayer > 1 && currentLayer <= numNetworkLayers + 1) {
+                    networkLayerDivs[currentLayer - 2].classList.remove('active');
                 }
-                const targetX = (currentLayer * (overlayContent.offsetWidth / numNetworkLayers)) - ((overlayContent.offsetWidth / numNetworkLayers) / 2) ; signalWaveContainer.style.left = `${targetX}px`;
-                 if (currentLayer > 0 && currentLayer <= numNetworkLayers) { networkLayerDivs[currentLayer - 1].classList.add('active'); }
-                 currentLayer++; animationControl.timeoutId = setTimeout(passLayer, stepDuration);
-            } passLayer();
+                 if (currentLayer > 0 && currentLayer <= numNetworkLayers) {
+                    networkLayerDivs[currentLayer - 1].classList.add('active');
+                 }
+
+                await delay(stepDuration); // Wait for movement/highlight
+            }
+             if (!animationControl.isCancelled && numNetworkLayers > 0) { // Unhighlight last layer
+                 networkLayerDivs[numNetworkLayers - 1].classList.remove('active');
+             }
+             signalWaveContainer.style.opacity = '0'; // Hide wave after pass
+
+            // --- Word Selection Visualization ---
+            if (animationControl.isCancelled) return;
+            wordSelectionVis.innerHTML = ''; // Clear previous
+            genericAlternatives.forEach(altWord => { if (altWord !== currentWord) { const altSpan = document.createElement('span'); altSpan.textContent = altWord; altSpan.classList.add('prob-word', 'alternative'); wordSelectionVis.appendChild(altSpan); } });
+            const selectedSpan = document.createElement('span'); selectedSpan.textContent = currentWord; selectedSpan.classList.add('prob-word', 'selected'); const insertIndex = Math.floor(Math.random() * (wordSelectionVis.children.length + 1)); wordSelectionVis.insertBefore(selectedSpan, wordSelectionVis.children[insertIndex]);
+            wordSelectionVis.classList.add('visible');
+
+            await delay(wordSelectionDuration); // Wait for user to see selection
+
+            // --- Append Word ---
+            if (animationControl.isCancelled) return;
+            wordSelectionVis.classList.remove('visible');
+            const span = document.createElement('span'); span.textContent = currentWord + ' '; span.classList.add('current-word');
+            overlayOutput.appendChild(span);
+            animationControl.wordIndex++;
+
+            // --- Schedule Next Step ---
+            if (!animationControl.isCancelled) {
+                 animationControl.timeoutId = setTimeout(animateLLMStep, wordAppendDelay);
+            }
         }
+
 
         // --- Core Logic (Query Cycle, Intersection Checks) ---
         function startQueryCycle() { /* ... (same) ... */ if (queryIntervalId) clearInterval(queryIntervalId); const runQuery = () => { const query = sampleQueries[currentQueryIndex]; currentQuerySpan.textContent = query; processQuery(query); currentQueryIndex = (currentQueryIndex + 1) % sampleQueries.length; }; runQuery(); queryIntervalId = setInterval(runQuery, queryInterval); }
@@ -246,12 +316,9 @@
             currentlyQueriedNode = null;
             // Reset all lines to default material FIRST
             clusterConnectionLines.forEach(lineData => {
-                // Check if the current material is not the default one before replacing
-                // This avoids unnecessary material assignments if many lines were already default
                 if (lineData.line.material !== defaultLineMaterial) {
                      lineData.line.material = defaultLineMaterial;
                 }
-                // We don't need to reset opacity explicitly here, as we assign the default material
             });
 
             const queryLower = query.toLowerCase(); const queryWords = queryLower.split(' '); let bestMatch = null;
@@ -264,10 +331,9 @@
                 const targetCenter = currentlyQueriedNode.userData.clusterCenter;
                 clusterConnectionLines.forEach(lineData => {
                     if (lineData.centerA.equals(targetCenter) || lineData.centerB.equals(targetCenter)) {
-                        // Clone the glow material to set unique opacity
                         lineData.line.material = glowLineMaterial.clone();
-                        // Set random opacity simulating weight/activation strength (Reduced Range)
-                        lineData.line.material.opacity = (Math.random() * 0.5 + 0.5) * 0.5; // Range 0.25 to 0.5
+                        // Set random opacity simulating weight (Reduced Range: 0.25 to 0.5)
+                        lineData.line.material.opacity = (Math.random() * 0.5 + 0.5) * 0.5;
                     }
                 });
             }
