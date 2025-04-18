@@ -180,7 +180,7 @@
 
             // Create signal dot elements
             signalWaveContainer.innerHTML = '';
-            for (let i = 0; i < numSignalDots; sv i++) { /* ... (same dot creation) ... */
+            for (let i = 0; i < numSignalDots; i++) { /* ... (same dot creation) ... */
                 const dot = document.createElement('div'); dot.classList.add('signal-dot-item');
                 dot.style.top = `${(i / (numSignalDots - 1)) * 100 - 50}%`; dot.style.transform = `translateY(-50%)`;
                 signalWaveContainer.appendChild(dot);
